@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.io</title>
+  </head>
+  <style>
+    body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+    #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
+    #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+    #input:focus { outline: none; }
+    #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+
+    #messages { list-style-type: none; margin: 0; padding: 0; }
+    #messages > li { padding: 0.5rem 1rem; }
+    #messages > li:nth-child(odd) { background: #efefef; }
+  </style>
+  <body>
+    <img src="data:image/png;base64, /9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAA0ACsDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDnIWx2rRSsSK7H9w1sW8nmdsVo12C5eWiWNmXHeqU1xIv3V3fjUsMsr9SB+NRZk2RPbXGPkZc++a5+9syb2U7u/pWrMTG+4dKqTTK0rEnnNLlQXMeOWcfwit2xO7rxUawx+1SQY/gNVzFFi8t3YZiOPwrMh0uXOPNkH410OBs61CLiNW6ClzMCvLaOlrhpdx9duP61zMkreY3NdjNIskOOlcRcSeXcOmM4PWkKyZrNcHsP1p0Mxh6DP41SDcZ61Lbo8/8AFt+tXdFGwl8XGNmP+BUyaMjncufTNIli6fxg1Dc2ocfK7Z9annQtSaK53rt/rXLXZ3Xch966PasCFjyBXKz3Aad229T60O3QFoaVqdyc1e2A+o+lFFICfe394/nVm2+brzRRQWU9XJWxcjiuOJJNFFBB/9k=" />
+    <img src="data:image/png;base64, /9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAA/AD4DASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD0Sx1WadJVmhUFB1HSsvTJWv8AxG5I+VB09KwpfFVxKpWGJY/MHze1SaZqUdhaSXTSbJJDgHrip5Qsd5NEMcuAfTNZki4kIBrkD4ivRPxcmRSem0f4V0NlfNcxKzcE9RWiiyLMssmTzVK8iG08dqluNSgtgTIelYd/4s0xQVzKWHouaNSbHFa/EE1B8DAJH8qyT0FaOs38d9cmSBGCHGGYcnis/AqjRPQ6i0VRpklyHBkkbAHp2rtbfSoZfDlujwqZMFj9cmuHs4UDRoBwzjIya9KW8jihROAAoGKzT0B3ucfLokhuSwzuz0AxXQ6bYvDbjePmwc1bjnW4mwgHHtV5vlXAqnLQl3OS1r5VfC5rjbq+ltVyIYWH+0SDXol9BHI7KRWDd6LFIGPlqQfUVSehNzz+61GW7fBjRR/sURgEkckD1rR1ewWzkJRQPpWYGIORxmnYtbG8l8InQ5wyt1rpjezTKpD8EDsK87kmPnEk+ldZot41zYBWbLDI6e9KFrajlc6axvXgAKtyetaa6kzIMnn6VgWVt5gHOD9av/Z5Y+hBHrRJxZIXlw5kLq2M9eKgN2GjwxzUV7OseVc4b2rKmlYHg4FOKuS9DL8RSBnO2sFQCM96savdtJNsDdDSQRb1Bx2rTRD1M253JMUYYbuK3vClwBeeS5ypHSucvLlrq+kmb+Ijt7YqewvHs7tJozg9+M1jHY2cbo9NEjwuQnFPFxLJwxNZ9hqsV5CHYncfatOOSI5p6GfKyOSJChJGSe5rD1GeO1iZumBzVvVdctrBXVydy9gDXnmqa/c6hPIo+WBiMLgelK/YfKNuLoy3TMG6muisMG2TI5xXIQKWdQOSa7HTbWU2qFj2/rVoppWP/9k=" />
+    <img id="cctv" src="" />
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      var socket = io();
+      const cctv = document.getElementById('cctv')
+      socket.on("imageData", data => {
+        // console.log(data)
+        // console.log('=============')
+        cctv.src = `data:image/png;base64, ${data}`
+      })
+
+      socket.on("count_unknowFace", data => {
+        console.log(data)
+      })
+      
+    </script>
+  </body>
+</html>
