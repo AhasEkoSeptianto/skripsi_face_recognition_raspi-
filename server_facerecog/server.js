@@ -4,7 +4,7 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const chokidar = require('chokidar');
 const path = require('path');
-
+require('./mdns.js')
 
 // middleware untuk mengakses file statis
 app.use(express.static(__dirname + '/public'));

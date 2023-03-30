@@ -4,8 +4,8 @@ import { IsIncludes } from './../../helper/isIncludes'
 
 export default async function handler(req:any, res:any) {
     const { method } = req
-    const { raspi_id, mobileAppsCon, created_at } = req.body
-    const { uniq_id, search } = req.query
+    const { raspi_id, mobileAppsCon, raspi_wifi_ssid, raspi_wifi_password, esp32cam_wifi_ssid, esp32cam_wifi_password, created_at } = req.body
+    const { uniq_id } = req.query
     
     await dbConnect()
 
@@ -30,6 +30,10 @@ export default async function handler(req:any, res:any) {
                 let raspi_config = new Config({
                     raspi_id: raspi_id,
                     mobileAppsCon: mobileAppsCon,
+                    raspi_wifi_ssid: raspi_wifi_ssid,
+                    raspi_wifi_password: raspi_wifi_password,
+                    esp32cam_wifi_ssid: esp32cam_wifi_ssid,
+                    esp32cam_wifi_password: esp32cam_wifi_password,
                     created_at: created_at
                 })
             
@@ -49,6 +53,10 @@ export default async function handler(req:any, res:any) {
                 await Config.findOneAndUpdate({_id: uniq_id}, {
                     raspi_id: raspi_id,
                     mobileAppsCon: mobileAppsCon,
+                    raspi_wifi_ssid: raspi_wifi_ssid,
+                    raspi_wifi_password: raspi_wifi_password,
+                    esp32cam_wifi_ssid: esp32cam_wifi_ssid,
+                    esp32cam_wifi_password: esp32cam_wifi_password,
                     created_at: created_at
                 },{new: true, useFindAndModify: false})
             

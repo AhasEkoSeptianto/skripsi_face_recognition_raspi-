@@ -1,0 +1,19 @@
+import socket
+
+HOST = '192.168.30.27' # Alamat IP dari perangkat
+PORT = 8888 # Port yang digunakan untuk menerima koneksi
+
+def change_wifi_credentials():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((HOST, PORT))
+        s.listen()
+        conn, addr = s.accept()
+        with conn:
+            print('Connected by', addr)
+            ssid = conn.recv(1024).decode('utf-8')
+            password = conn.recv(1024).decode('utf-8')
+            # Setelah menerima SSID dan password baru, kirimkan ke ESP32CAM
+            # melalui koneksi serial atau metode komunikasi lainnya.
+            # ...
+
+change_wifi_credentials()
