@@ -1,6 +1,7 @@
 import sys
 import subprocess
 from pymongo import MongoClient
+import time
 
 sys.path.append('..')
 from networkCheck import CheckNetwork
@@ -42,6 +43,7 @@ while True:
     else:
         print('connection refuces')
 
+time.sleep(60)
 
 while True:
     output = process.stdout.readline()
@@ -54,7 +56,7 @@ while True:
             process.stdin.write(b"yes\n")
             process.stdin.flush()
         host = output.decode().strip()
-        
+        print(host)
         SaveServer()
         if (host != ""):
             break
