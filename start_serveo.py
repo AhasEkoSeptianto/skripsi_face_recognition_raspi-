@@ -15,11 +15,15 @@ process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subpr
 host = ""
 raspiID = ""
 
-with open('./../raspiID.txt') as f:
+with open('raspiID.txt') as f:
     contents = f.read()
     raspiID = contents
 
 def SaveServer():
+
+    with open('serverMobileuri.txt', "w") as f:
+        f.write(host)
+
     data = col.find_one({ "raspi_id": raspiID })
     if (data):
         col.find_one_and_update({ "raspi_id": raspiID }, { "$set": {"mobileAppsCon": host}})
