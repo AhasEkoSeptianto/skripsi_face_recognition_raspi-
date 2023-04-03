@@ -3,14 +3,14 @@ import subprocess
 from pymongo import MongoClient
 import time
 
-sys.path.append('..')
+#sys.path.append('..')
 from networkCheck import CheckNetwork
 
 # db config
 cluster = MongoClient("mongodb+srv://ahaseko:aaseko100465@cluster0.hqm02.mongodb.net/skripsi?retryWrites=true&w=majority")
 db = cluster['skripsi']
 col = db['raspi_configs']
-dirs = ""
+dirs = "/home/puput/skripsi_face_recognition_raspi-/"
 
 command = "ssh -o StrictHostKeyChecking=no -R 80:localhost:3000 serveo.net"
 process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -47,7 +47,6 @@ time.sleep(60)
 
 while True:
     output = process.stdout.readline()
-    print(output)
     if not output and process.poll() is not None:
         break
     if output:
