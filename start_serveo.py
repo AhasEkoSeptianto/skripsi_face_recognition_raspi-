@@ -9,19 +9,20 @@ from networkCheck import CheckNetwork
 cluster = MongoClient("mongodb+srv://ahaseko:aaseko100465@cluster0.hqm02.mongodb.net/skripsi?retryWrites=true&w=majority")
 db = cluster['skripsi']
 col = db['raspi_configs']
+dirs = ""
 
 command = "ssh -o StrictHostKeyChecking=no -R 80:localhost:3000 serveo.net"
 process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 host = ""
 raspiID = ""
 
-with open('raspiID.txt') as f:
+with open(dirs + 'raspiID.txt') as f:
     contents = f.read()
     raspiID = contents
 
 def SaveServer():
 
-    with open('serverMobileuri.txt', "w") as f:
+    with open(dirs + 'serverMobileuri.txt', "w") as f:
         f.write(host)
 
     data = col.find_one({ "raspi_id": raspiID })
@@ -55,4 +56,6 @@ while True:
         host = output.decode().strip()
         
         SaveServer()
+        if (host != ""):
+            break
 
