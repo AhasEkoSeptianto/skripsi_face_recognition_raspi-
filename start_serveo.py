@@ -5,6 +5,17 @@ from pymongo import MongoClient
 sys.path.append('..')
 from networkCheck import CheckNetwork
 
+# check connection
+network = False
+
+while True:
+    network = CheckNetwork()
+    if (network):
+        break
+    else:
+        print('connection refuces')
+
+
 # db config
 cluster = MongoClient("mongodb+srv://ahaseko:aaseko100465@cluster0.hqm02.mongodb.net/skripsi?retryWrites=true&w=majority")
 db = cluster['skripsi']
@@ -31,17 +42,6 @@ def SaveServer():
         
     else:
         print("raspi not found")
-
-
-# check connection
-network = False
-
-while True:
-    network = CheckNetwork()
-    if (network):
-        break
-    else:
-        print('connection refuces')
 
 while True:
     output = process.stdout.readline()
