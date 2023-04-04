@@ -14,6 +14,7 @@ network = False
 while True:
    network = CheckNetwork()
    with open(dirs + 'connection.txt', "w") as f:
+       print(str(network))
        f.write(str(network))
 
    if (network):
