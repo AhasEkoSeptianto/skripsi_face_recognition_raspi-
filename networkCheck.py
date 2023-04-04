@@ -9,3 +9,12 @@ def CheckNetwork():
         return True
     except:
         return False
+
+while True:
+    network = CheckNetwork()
+    with open('connection.txt', "w") as f:
+        f.write(str(network))
+    if (network):
+        print("connect")
+    else:
+        print("not connect")

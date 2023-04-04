@@ -6,11 +6,25 @@ import time
 #sys.path.append('..')
 from networkCheck import CheckNetwork
 
+
+dirs = "/home/puput/skripsi_face_recognition_raspi-/"
+# check connection
+network = False
+
+while True:
+   network = CheckNetwork()
+   with open(dirs + 'connection.txt', "w") as f:
+       f.write(str(network))
+
+   if (network):
+       break
+   else:
+       print('connection refuces')
+
 # db config
 cluster = MongoClient("mongodb+srv://ahaseko:aaseko100465@cluster0.hqm02.mongodb.net/skripsi?retryWrites=true&w=majority")
 db = cluster['skripsi']
 col = db['raspi_configs']
-dirs = "/home/puput/skripsi_face_recognition_raspi-/"
 
 command = "ssh -o StrictHostKeyChecking=no -R 80:localhost:3000 serveo.net"
 process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -33,15 +47,6 @@ def SaveServer():
     else:
         print("raspi not found")
 
-# check connection
-#network = False
-
-#while True:
-#    network = CheckNetwork()
-#    if (network):
-#        break
-#    else:
-#        print('connection refuces')
 
 #time.sleep(60)
 
