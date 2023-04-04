@@ -7,8 +7,8 @@ import time
 from networkCheck import CheckNetwork
 
 
-dirs = "/home/puput/skripsi_face_recognition_raspi-/"
-# dirs = ""
+# dirs = "/home/puput/skripsi_face_recognition_raspi-/"
+dirs = ""
 # check connection
 network = False
 
@@ -42,6 +42,7 @@ def SaveServer():
         f.write(host)
 
     if (not isHaveSave):
+
         data = col.find_one({ "raspi_id": raspiID })
         if (data):
             col.find_one_and_update({ "raspi_id": raspiID }, { "$set": {"mobileAppsCon": host}})
@@ -58,7 +59,9 @@ while not process :
 
 while True:    
     output = process.stdout.readline()
-    print('output > ', output)
+    
+    if not output and process.poll() is not None:
+        break
     
     if output:
         if b"Are you sure you want to continue" in output:
@@ -67,6 +70,4 @@ while True:
         host = output.decode().strip()
         
         SaveServer()
-        # if (host != "" and host != b""):
-        #     break
-    # time.sleep(1)
+        print(host)
