@@ -34,16 +34,16 @@ def SaveServer():
         print("raspi not found")
 
 # check connection
-network = False
+#network = False
 
-while True:
-    network = CheckNetwork()
-    if (network):
-        break
-    else:
-        print('connection refuces')
+#while True:
+#    network = CheckNetwork()
+#    if (network):
+#        break
+#    else:
+#        print('connection refuces')
 
-time.sleep(60)
+#time.sleep(60)
 
 while True:
     output = process.stdout.readline()
