@@ -37,7 +37,7 @@ with open(dirs + 'raspiID.txt') as f:
     raspiID = contents
 
 def SaveServer():
-
+    global isHaveSave
     with open(dirs + 'serverMobileuri.txt', "w") as f:
         f.write(host)
 
