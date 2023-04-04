@@ -27,8 +27,6 @@ cluster = MongoClient("mongodb+srv://ahaseko:aaseko100465@cluster0.hqm02.mongodb
 db = cluster['skripsi']
 col = db['raspi_configs']
 
-command = "ssh -o StrictHostKeyChecking=no -R 80:localhost:3000 serveo.net"
-process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 host = ""
 raspiID = ""
 
@@ -52,6 +50,9 @@ def SaveServer():
 #time.sleep(60)
 
 while True:
+    command = "ssh -o StrictHostKeyChecking=no -R 80:localhost:3000 serveo.net"
+    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
     output = process.stdout.readline()
     print('output > ', output)
     if not output and process.poll() is not None:
