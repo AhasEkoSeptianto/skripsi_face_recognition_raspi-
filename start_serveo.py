@@ -53,6 +53,7 @@ def SaveServer():
 
 while True:
     output = process.stdout.readline()
+    print('output > ', output)
     if not output and process.poll() is not None:
         break
     if output:
