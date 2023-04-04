@@ -55,8 +55,8 @@ while True:
 
     output = process.stdout.readline()
     print('output > ', output)
-    if not output and process.poll() is not None:
-        break
+    #if not output and process.poll() is not None:
+    #    break
     if output:
         if b"Are you sure you want to continue" in output:
             print('okeh')
@@ -65,6 +65,6 @@ while True:
         host = output.decode().strip()
         print(host)
         SaveServer()
-        if (host != ""):
+        if (host != "" and host != b""):
             break
 
