@@ -7,7 +7,8 @@ import time
 from networkCheck import CheckNetwork
 
 
-dirs = "/home/puput/skripsi_face_recognition_raspi-/"
+# dirs = "/home/puput/skripsi_face_recognition_raspi-/"
+dirs = ""
 # check connection
 network = False
 
@@ -29,6 +30,7 @@ col = db['raspi_configs']
 
 host = ""
 raspiID = ""
+isHaveSave = False
 
 with open(dirs + 'raspiID.txt') as f:
     contents = f.read()
@@ -39,32 +41,31 @@ def SaveServer():
     with open(dirs + 'serverMobileuri.txt', "w") as f:
         f.write(host)
 
-    data = col.find_one({ "raspi_id": raspiID })
-    if (data):
-        col.find_one_and_update({ "raspi_id": raspiID }, { "$set": {"mobileAppsCon": host}})
-        
-    else:
-        print("raspi not found")
+    if (not isHaveSave):
+        data = col.find_one({ "raspi_id": raspiID })
+        if (data):
+            col.find_one_and_update({ "raspi_id": raspiID }, { "$set": {"mobileAppsCon": host}})
+            isHaveSave = True
+        else:
+            print("raspi not found")
 
 
-#time.sleep(60)
+
 
 while True:
     command = "ssh -o StrictHostKeyChecking=no -R 80:localhost:3000 serveo.net"
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
+    
     output = process.stdout.readline()
     print('output > ', output)
-    #if not output and process.poll() is not None:
-    #    break
+    
     if output:
         if b"Are you sure you want to continue" in output:
-            print('okeh')
             process.stdin.write(b"yes\n")
             process.stdin.flush()
         host = output.decode().strip()
-        print(host)
+        
         SaveServer()
-        if (host != "" and host != b""):
-            break
-
+        # if (host != "" and host != b""):
+        #     break
+    time.sleep(1)
