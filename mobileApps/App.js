@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { Fragment, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import socket from './socket';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+// import socket from './socket';
 import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Button } from 'react-native';
@@ -12,8 +12,13 @@ import { TouchableHighlight } from 'react-native';
 import { TouchableOpacity } from 'react-native';
 import { ActivityIndicator } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-
+import { io } from 'socket.io-client';
 import { Storage } from 'expo-storage'
+import axios from 'axios';
+
+var socket = io("ws://skripsiAhasEkoSeptianto.com/", {
+    transports: ["websocket", "polling"],
+})
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -116,14 +121,30 @@ function Startup({ navigation }){
 function GetRaspiDevice({ navigation }){
   const [ formRaspiID, setFormRaspiID ] = useState('')
   const [ loadingSubmit, setLoadingSubmit ] = useState(false)
+  const [ alert, setAlert ] = useState('')
+
   const Submit = async () => {
     setLoadingSubmit(true)
-    await Storage.setItem({
-      key: 'raspiID',
-      value: formRaspiID
-    })
-    navigation.navigate("Home")
-    setFormRaspiID('')
+    await axios.get("https://raspi-gateway.netlify.app/api/raspi_config?raspi_id=" + formRaspiID)
+      .then(async res => {
+        if (res?.data?.data?.length > 0){
+          let host = res?.data?.data?.[0]?.mobileAppsCon?.replace('https://', 'ws://')
+          socket = io(host, {
+              transports: ["websocket", "polling"],
+          })
+          await Storage.setItem({
+            key: 'raspiID',
+            value: formRaspiID
+          })
+          navigation.navigate("Home")
+          setFormRaspiID('')
+        }else{
+          Alert.alert('error', 'maaf id rasberry pi kamu tidak ditemukan')
+        }
+      }).catch(err => {
+        console.log(err)
+      })
+    
     setLoadingSubmit(false)
   }
 
