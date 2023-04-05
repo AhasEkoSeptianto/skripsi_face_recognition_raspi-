@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { Fragment, useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import socket from './socket';
 import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -53,20 +53,39 @@ function Startup({ navigation }){
     })
   },[socket])
 
+  useEffect(() => {
+
+  },[navigation])
+
   return (
     <Fragment>
-      {/* <Drawer.Navigator initialRouteName='GetRaspi'> */}
-      <Drawer.Navigator initialRouteName='WajahTidakDiketahui'>
+      <Drawer.Navigator initialRouteName='GetRaspi'>
+      {/* <Drawer.Navigator initialRouteName='WajahTidakDiketahui'> */}
         <Drawer.Screen 
           name='GetRaspi'
           options={{
-            drawerItemStyle: { height: 0 }
+            drawerItemStyle: { height: 0 },
+            headerShown: false
           }}  
         >
           {(props) => <GetRaspiDevice {...props} />}
         </Drawer.Screen>
-        <Drawer.Screen name='Home'
-          
+        <Drawer.Screen name='Home' 
+          options={{
+            headerRight: () => (
+              <TouchableOpacity onPress={async () => {
+                console.log("clicked")
+                await Storage.setItem({key: 'raspiID', value: "" })
+                  .then(res => {
+                    navigation.navigate('GetRaspi')
+                  }).catch(err => {
+
+                  })
+              }}>
+                <Text style={{ marginRight: 10 }}>Keluar</Text>
+              </TouchableOpacity>
+            )
+          }}
         >
           {(props) => <Home {...props} cctv={cctv} allImageUnknow={allImageUnknow} />}
         </Drawer.Screen>
@@ -103,7 +122,8 @@ function GetRaspiDevice({ navigation }){
       key: 'raspiID',
       value: formRaspiID
     })
-
+    navigation.navigate("Home")
+    setFormRaspiID('')
     setLoadingSubmit(false)
   }
 
@@ -125,6 +145,7 @@ function GetRaspiDevice({ navigation }){
         <TextInput 
           placeholder='ketik rasberry pi ID anda'
           onChangeText={(text) => setFormRaspiID(text)}
+          value={formRaspiID}
           style={{ textAlign: 'center', borderWidth: .2, padding: 10, borderRadius: 5, marginTop: 20 }}
         />
         <View style={{ marginTop: 20 }}>
@@ -147,10 +168,10 @@ function Home({ navigation, cctv, allImageUnknow }){
 
   const [ raspiID, setRaspiID ] = useState('')
   
-
-  useEffect(() => {
+  useFocusEffect(() => {
     Setup()
-  },[])
+  })
+
   
   const Setup = async () => {
     let isHaveRaspiID = await Storage.getItem({ key: 'raspiID' })
@@ -184,24 +205,26 @@ function WajahTidakDiketahui({ navigation, allImageUnknow }){
  
   return (
     <View style={{ marginTop: 5 }}>
-      {allImageUnknow?.map((item, key) => (
-        <View style={{ backgroundColor: 'white', marginBottom: 5, padding: 10, marginHorizontal: 10, borderRadius: 5, flexDirection: 'row', alignItems:'flex-start', justifyContent: 'space-around' }}>
-          <Image 
-            key={key}
-            style={{ width: 100, height: 100, borderRadius: 5 }}
-            source={{
-              uri: `data:image/png;base64, ${item}`
-            }}
-          />
-          <View style={{ height: 100, flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around' }}>
-            <Text style={{ fontSize: 13 }}>Tanggal Terekam : 1 juni 2022 18.12</Text>
-            <Button 
-              title='Saya Mengenalnya'
-              onPress={() => navigation.navigate("saveFace", { imgIdx: key })}
+      <ScrollView>
+        {allImageUnknow?.map((item, key) => (
+          <View style={{ backgroundColor: 'white', marginBottom: 5, padding: 10, marginHorizontal: 10, borderRadius: 5, flexDirection: 'row', alignItems:'flex-start', justifyContent: 'space-around' }}>
+            <Image 
+              key={key}
+              style={{ width: 100, height: 100, borderRadius: 5 }}
+              source={{
+                uri: `data:image/png;base64, ${item}`
+              }}
             />
+            <View style={{ height: 100, flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around' }}>
+              <Text style={{ fontSize: 13 }}>Tanggal Terekam : 1 juni 2022 18.12</Text>
+              <Button 
+                title='Saya Mengenalnya'
+                onPress={() => navigation.navigate("saveFace", { imgIdx: key })}
+              />
+            </View>
           </View>
-        </View>
-      ))}
+        ))}
+      </ScrollView>
     </View>
   )
 }
