@@ -7,8 +7,8 @@ import time
 from networkCheck import CheckNetwork
 
 
-# dirs = "/home/puput/skripsi_face_recognition_raspi-/"
-dirs = ""
+dirs = "/home/puput/skripsi_face_recognition_raspi-/"
+#dirs = ""
 # check connection
 network = False
 
@@ -52,14 +52,14 @@ def SaveServer():
 
 process = False
 
-while not process :
+while process == False :
     command = "ssh -o StrictHostKeyChecking=no -R 80:localhost:3000 serveo.net"
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-
+#print(process)
 while True:    
     output = process.stdout.readline()
-    
+    print(output)
     if not output and process.poll() is not None:
         break
     
@@ -70,4 +70,5 @@ while True:
         host = output.decode().strip()
         
         SaveServer()
+
         print(host)
