@@ -18,6 +18,7 @@ app.get('/', function(req, res) {
 
 
 const dirs_unknowFace = './../face_recognition-skripsi/unknowFace/';
+const dirs_knowFace = './../face_recognition-skripsi/dataSet/'
 const fs = require('fs');
 
 const readFileImage = (file_list) => {
@@ -86,6 +87,17 @@ io.on('connection', function(socket) {
     let imageData = readCapture();
     socket.emit('imageData', imageData);
   }, 1000);
+
+  // event untuk save new face
+  socket.on("saveFace", data => {
+    fs.rename(dirs_unknowFace + data?.fileName, dirs_knowFace + data?.name + '.png', function(err, data){
+      if (err){
+        socket.emit("saveFaceSuccess", "fail")
+      }else{
+        socket.emit("saveFaceSuccess", "success")
+      }
+    })
+  })
 
   // event untuk disconnect
   socket.on('disconnect', function() {

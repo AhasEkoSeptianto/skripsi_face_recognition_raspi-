@@ -40,10 +40,12 @@ function Startup({ navigation }){
 
   const [ allImageUnknow, setAllImageUnknow ] = useState([])
   const [ cctv, setCctv ] = useState('')
+  const [ allFileName, setAllFileName ] = useState([])
 
   useEffect(() => {
     socket.on("count_unknowFace", data => {
       setAllImageUnknow(data?.image)
+      setAllFileName(data?.allFiles)
     })
     socket.on("imageData", data => {
       let image = `data:image/png;base64, ${data}`
@@ -53,7 +55,8 @@ function Startup({ navigation }){
 
   return (
     <Fragment>
-      <Drawer.Navigator initialRouteName='GetRaspi'>
+      {/* <Drawer.Navigator initialRouteName='GetRaspi'> */}
+      <Drawer.Navigator initialRouteName='WajahTidakDiketahui'>
         <Drawer.Screen 
           name='GetRaspi'
           options={{
@@ -75,6 +78,17 @@ function Startup({ navigation }){
         >
           {(props) => <WajahTidakDiketahui {...props} allImageUnknow={allImageUnknow} />}
         </Drawer.Screen>
+
+        <Drawer.Screen 
+          name='saveFace' 
+          options={{
+            title: 'simpan wajah',
+            drawerItemStyle: { height: 0 }
+          }}
+        >
+          {(props) => <SaveFaces {...props} allFileName={allFileName} allImageUnknow={allImageUnknow} />}
+        </Drawer.Screen>
+
       </Drawer.Navigator>
     </Fragment>
   )
@@ -181,9 +195,9 @@ function WajahTidakDiketahui({ navigation, allImageUnknow }){
           />
           <View style={{ height: 100, flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around' }}>
             <Text style={{ fontSize: 13 }}>Tanggal Terekam : 1 juni 2022 18.12</Text>
-            {/* <Text style={{ fontSize: 13 }}>Apakah anda mengenal orang tersebut ?</Text> */}
             <Button 
               title='Saya Mengenalnya'
+              onPress={() => navigation.navigate("saveFace", { imgIdx: key })}
             />
           </View>
         </View>
@@ -191,6 +205,59 @@ function WajahTidakDiketahui({ navigation, allImageUnknow }){
     </View>
   )
 }
+
+function SaveFaces({ navigation, route, allImageUnknow, allFileName }){
+
+  const { params } = route
+  const [loadingSubmit, setLoadingSubmit] = useState(false)
+  const [ name, setName ] = useState('')
+
+  // console.log(`data:image/png;base64, ${allImageUnknow?.[params?.imgIdx]}`)
+
+  const Submit = async () => {
+    setLoadingSubmit(true)
+    socket.emit("saveFace", { fileName: allFileName?.[params?.imgIdx], name: name })
+    socket.on("saveFaceSuccess", data => {
+      console.log(data)
+      if (data === "success"){
+        setName('')
+        navigation.navigate("WajahTidakDiketahui")
+        setLoadingSubmit(false)
+      }
+    })
+  }
+
+  return (
+    <View style={{ flex:1,flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      {allImageUnknow?.map((item, key) => (
+        <Fragment>
+          {key === params?.imgIdx && (
+            <Image 
+              key={key}
+              style={{ width: 100, height: 100, borderRadius: 5 }}
+              source={{
+                uri: `data:image/png;base64, ${item}`
+              }}
+            />
+          )}
+        </Fragment>
+      ))}
+      <View style={{ marginTop: 20, width: '80%' }}>
+        <TextInput 
+          style={{ borderWidth: .2, borderRadius: 5, padding: 10, textAlign: 'center' }}
+          placeholder='ketik nama'
+          onChangeText={(text) => setName(text)}
+          value={name}
+        />
+      </View>
+      <TouchableOpacity style={{ backgroundColor: '#0078AA', borderRadius: 5, padding: 5, marginTop: 20, width: '30%' }} onPress={Submit}>
+        <Text disabled={loadingSubmit} style={{ textAlign: 'center', color: 'white', fontSize: 15 }}>
+          {loadingSubmit ? <ActivityIndicator color='white' /> : 'Submit' }
+        </Text>
+      </TouchableOpacity>
+    </View>
+  )
+} 
 
 const styles = StyleSheet.create({
   container: {
