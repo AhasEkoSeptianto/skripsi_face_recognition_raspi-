@@ -4,9 +4,12 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const chokidar = require('chokidar');
 const path = require('path');
+const cors = require('cors')
 
 // middleware untuk mengakses file statis
 app.use(express.static(__dirname + '/public'));
+app.use(cors())
+console.log("enabling cors...")
 
 // route untuk halaman utama
 app.get('/', function(req, res) {
