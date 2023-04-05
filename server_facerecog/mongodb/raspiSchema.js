@@ -4,7 +4,7 @@ const raspiSchema = new mongoose.Schema({
 	raspi_id: {
 		type: String,
 	},
-	mobileApps:{
+	mobileAppsCon:{
 		type: String,
 	},
 	raspi_wifi_ssid: {

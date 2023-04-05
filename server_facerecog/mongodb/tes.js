@@ -1,3 +1,3 @@
-const s = require("./mongoatlas.js");
+const m = require('./mongoose')
 
-s.run();
+m.saveHost("okeh");
