@@ -9,7 +9,7 @@ def get_ipv4_address():
     return ip_address
 
 IPADDRESS = get_ipv4_address()
-print(IPADDRESS)
+# print(IPADDRESS)
 
 # network={
 #         ssid="poccox3"

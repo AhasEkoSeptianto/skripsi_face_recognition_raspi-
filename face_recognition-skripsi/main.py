@@ -64,54 +64,59 @@ while True:
     dataSets = dataSet
     # ret, frame = video_capture.read()
 
-    response = requests.get(URL)
-    img_array = np.array(bytearray(response.content), dtype=np.uint8)
-    frame = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+    try: 
+        response = requests.get(URL)
+        img_array = np.array(bytearray(response.content), dtype=np.uint8)
+        frame = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
 
-    
-
-    small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
-    
-    face_locations = face_recognition.face_locations(small_frame)
-    face_encodings = face_recognition.face_encodings(small_frame, face_locations)
-    
-    faceName = []
-
-    # bandingkan kedua encoding wajah
-    for face_encoding in face_encodings:
-        matches = face_recognition.compare_faces(dataSets, face_encoding)
-
-        if True in matches:
-            first_match_index = matches.index(True)
-            name = listDir[first_match_index]
-            faceName.append(name)
-        elif not isUnkowFace:
-            name = "unknow"
-            faceName.append(name)
-            face_locations_hd = face_recognition.face_locations(frame)
-            SaveUnknowFaces( frame ,face_locations_hd)
-            isUnkowFace = True
-
-    for (top, right, bottom, left), name in zip(face_locations, faceName):
         
-        # create rectangle
-        cv2.rectangle(small_frame, (left, top), (right, bottom), (0, 0, 255), 2)
 
-        # create label name
-        font = cv2.FONT_HERSHEY_DUPLEX
-        cv2.putText(small_frame, name, (left + 6, bottom - 6), font, 0.3, (255, 255, 255), 1)
+        small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
+        
+        face_locations = face_recognition.face_locations(small_frame)
+        face_encodings = face_recognition.face_encodings(small_frame, face_locations)
+        
+        faceName = []
+
+        # bandingkan kedua encoding wajah
+        for face_encoding in face_encodings:
+            matches = face_recognition.compare_faces(dataSets, face_encoding)
+
+            if True in matches:
+                first_match_index = matches.index(True)
+                name = listDir[first_match_index]
+                faceName.append(name)
+            elif not isUnkowFace:
+                name = "unknow"
+                faceName.append(name)
+                face_locations_hd = face_recognition.face_locations(frame)
+                SaveUnknowFaces( frame ,face_locations_hd)
+                isUnkowFace = True
+
+        for (top, right, bottom, left), name in zip(face_locations, faceName):
+            
+            # create rectangle
+            cv2.rectangle(small_frame, (left, top), (right, bottom), (0, 0, 255), 2)
+
+            # create label name
+            font = cv2.FONT_HERSHEY_DUPLEX
+            cv2.putText(small_frame, name, (left + 6, bottom - 6), font, 0.3, (255, 255, 255), 1)
+        
+        cv2.imshow("frame", small_frame)
+
+        # menyimpan gambar sebagai base 64
+        retval, buffer = cv2.imencode('.jpg', small_frame)
+        jpg_as_text = base64.b64encode(buffer).decode('utf-8')
+        with open('capture.txt', 'w') as f:
+            f.write(jpg_as_text)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    except(err):
+        console.log(err)
+
     
-    cv2.imshow("frame", small_frame)
-
-    # menyimpan gambar sebagai base 64
-    retval, buffer = cv2.imencode('.jpg', small_frame)
-    jpg_as_text = base64.b64encode(buffer).decode('utf-8')
-    with open('capture.txt', 'w') as f:
-        f.write(jpg_as_text)
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
 
 # Release handle to the webcam
 cv2.destroyAllWindows()
