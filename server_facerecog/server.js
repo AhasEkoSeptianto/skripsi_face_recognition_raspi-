@@ -5,6 +5,7 @@ const io = require('socket.io')(server);
 const chokidar = require('chokidar');
 const path = require('path');
 const cors = require('cors')
+const ip  = require('ip')
 
 // middleware untuk mengakses file statis
 app.use(express.static(__dirname + '/public'));
@@ -16,6 +17,14 @@ app.get('/', function(req, res) {
   res.sendFile(__dirname + '/index.html');
 });
 
+
+app.get('/getIp', function (req, res){
+  var ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  console.log(ip)
+  res.send({ msg: "Okeh" })
+})
+
+console.log(ip.address())
 
 const dirs_unknowFace = './../face_recognition-skripsi/unknowFace/';
 const dirs_knowFace = './../face_recognition-skripsi/dataSet/'

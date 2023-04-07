@@ -25,6 +25,7 @@ rangeIP = rangeIP[0] + "." + rangeIP[1] + "." + rangeIP[2] + "." + "1/24"
 
 # Jalankan perintah nmap untuk mencari alamat IP dari modul ESP32CAM
 nmap_output = subprocess.check_output(["sudo", "nmap", "-sn", rangeIP])
+print(nmap_output)
 # # Ambil alamat IP dari hasil nmap
 ip_address = nmap_output.decode('utf-8').split(').')
 macAddStart1 = "24:0A:C4"
@@ -53,7 +54,7 @@ def check_url(url):
     except:
         return False
     
-print(ip)
+# print(ip)
 isValid = check_url("http://" + ip + "/capture")
 
 # # Simpan alamat IP ke dalam file ipaddress.txt

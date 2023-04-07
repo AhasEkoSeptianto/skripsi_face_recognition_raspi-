@@ -7,12 +7,18 @@ import requests
 import base64
 
 
+
 # set config webcam
-URL = "http://192.168.100.27/cam-lo.jpg"
+URL = "http://<IP>/cam-lo.jpg"
 # video_capture = cv2.VideoCapture(URL + ":81/stream")
 # video_capture = cv2.VideoCapture(URL + "/capture")
 # video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 # video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+
+with open('IPESP32CAM.txt') as f:
+    IP = f.read()
+    URL = "http://" +  IP + "/cam-lo.jpg"
+
 
 # setup dataset
 dataSet = []

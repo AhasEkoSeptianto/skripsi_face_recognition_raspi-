@@ -129,9 +129,10 @@ function GetRaspiDevice({ navigation }){
       .then(async res => {
         if (res?.data?.data?.length > 0){
           let host = res?.data?.data?.[0]?.mobileAppsCon?.replace('https://', 'ws://')
-          socket = io(host, {
+          socket = await io(host, {
               transports: ["websocket", "polling"],
           })
+          console.log(host)
           await Storage.setItem({
             key: 'raspiID',
             value: formRaspiID
@@ -191,6 +192,7 @@ function Home({ navigation, cctv, allImageUnknow }){
   
   useFocusEffect(() => {
     Setup()
+    // console.log(socket)
   })
 
   

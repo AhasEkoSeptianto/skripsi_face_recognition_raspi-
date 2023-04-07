@@ -22,6 +22,12 @@ var config = new Schema({
     esp32cam_wifi_password:{
         type: String
     },
+    IP_AddresV4Raspi: {
+        type: String
+    },
+    IP_ESP32CAM: {
+        type: String
+    },
     created_at: { 
         type: Date, 
         default: Date.now 
