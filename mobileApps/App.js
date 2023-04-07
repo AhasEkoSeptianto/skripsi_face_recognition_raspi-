@@ -16,7 +16,8 @@ import { io } from 'socket.io-client';
 import { Storage } from 'expo-storage'
 import axios from 'axios';
 
-var socket = io("ws://skripsiAhasEkoSeptianto.com/", {
+var socket = io("ws://tired-chefs-prove-103-119-62-12.loca.lt//", {
+// var socket = io("ws://skripsiAhasEkoSeptianto.com/", {
     transports: ["websocket", "polling"],
 })
 
@@ -128,7 +129,8 @@ function GetRaspiDevice({ navigation }){
     await axios.get("https://raspi-gateway.netlify.app/api/raspi_config?raspi_id=" + formRaspiID)
       .then(async res => {
         if (res?.data?.data?.length > 0){
-          let host = res?.data?.data?.[0]?.mobileAppsCon?.replace('https://', 'ws://')
+          let host = res?.data?.data?.[0]?.mobileAppsCon?.replace('https://', 'ws://')?.replace("\n", "")
+          console.log(host , '<==============================')
           socket = await io(host, {
               transports: ["websocket", "polling"],
           })
@@ -186,7 +188,7 @@ function GetRaspiDevice({ navigation }){
 
 
 function Home({ navigation, cctv, allImageUnknow }){
-
+  console.log(socket)
 
   const [ raspiID, setRaspiID ] = useState('')
   
