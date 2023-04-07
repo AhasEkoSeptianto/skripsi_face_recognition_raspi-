@@ -7,7 +7,7 @@ module.exports.saveHost =  async (host) => {
     var raspiID = await fs.readFileSync('../raspiID.txt', 'utf8');
     
 
-    let list = await raspi.findOneAndUpdate({ "raspi_id": raspiID }, { "$set": { "mobileAppsCon": host } })
+    let list = await raspi.findOneAndUpdate({ "raspi_id": raspiID }, { "$set": { "mobileAppsCon": host } }, { "new": true })
     // let list = await raspi.find({"raspi_id": raspiID})
     console.log(list)
 }

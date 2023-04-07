@@ -10,11 +10,12 @@ const ip  = require('ip')
 // middleware untuk mengakses file statis
 app.use(express.static(__dirname + '/public'));
 app.use(cors())
-console.log("enabling cors...")
+//console.log("enabling cors...")
 
 // route untuk halaman utama
 app.get('/', function(req, res) {
   res.sendFile(__dirname + '/index.html');
+//	res.send({ msg: "success" });
 });
 
 
@@ -24,7 +25,7 @@ app.get('/getIp', function (req, res){
   res.send({ msg: "Okeh" })
 })
 
-console.log(ip.address())
+//console.log(ip.address())
 
 const dirs_unknowFace = './../face_recognition-skripsi/unknowFace/';
 const dirs_knowFace = './../face_recognition-skripsi/dataSet/'
@@ -35,7 +36,7 @@ const readFileImage = (file_list) => {
   file_list.forEach((img, idx) => {
     const file = fs.readdirSync(dirs_unknowFace)[idx];
     const filePath = path.join(dirs_unknowFace, file);
-  
+
     const base64Image = fs.readFileSync(filePath, { encoding: 'base64' });
     listFile.push(base64Image)
   })
@@ -116,6 +117,8 @@ io.on('connection', function(socket) {
 });
 
 // jalankan server
-server.listen(3000, function() {
+server.listen(3001, "0.0.0.0" , function() {
   console.log('Server berjalan pada port 3000');
+
+	//require("./startTunnel")
 });

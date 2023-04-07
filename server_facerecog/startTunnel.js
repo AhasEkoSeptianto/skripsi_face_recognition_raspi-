@@ -1,23 +1,12 @@
-const localtunnel = require("localtunnel");
-const m = require('./mongodb/mongoose')
+const { exec } = require("child_process");
+const  m = require("./mongodb/mongoose.js")
 
-const main = async () => {
-	const tunnel = await localtunnel({ port: 3000 });
+exec("curl -s localhost:4040/api/tunnels | jq -r .tunnels[0].public_url", (err, stdout, stderr) => {
+	if (err){
+		console.log(err)
+		return
+	}
 	
-	host = tunnel.url;
-	m.saveHost(host)	
-	tunnel.on("close", () => {
-		console.log("closed")
-	})
-}
-
-// (async () => {
-// 	const tunnel = await localtunnel({ port: 3000 });
-	
-// 	host = tunnel.url;
-	
-// 	tunnel.on("close", () => {
-// 		console.log("closed")
-// 	})
-// })();
-main()
+	console.log(stdout);
+	m.saveHost(stdout)
+})
