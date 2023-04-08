@@ -31,11 +31,23 @@ const dirs_unknowFace = './../face_recognition-skripsi/unknowFace/';
 const dirs_knowFace = './../face_recognition-skripsi/dataSet/'
 const fs = require('fs');
 
-const readFileImage = (file_list) => {
+const readFileImageUnknowFace = (file_list) => {
   let listFile = []
   file_list.forEach((img, idx) => {
     const file = fs.readdirSync(dirs_unknowFace)[idx];
     const filePath = path.join(dirs_unknowFace, file);
+
+    const base64Image = fs.readFileSync(filePath, { encoding: 'base64' });
+    listFile.push(base64Image)
+  })
+  return listFile
+}
+
+const readFileImageKnowFace = (file_list) => {
+  let listFile = []
+  file_list.forEach((img, idx) => {
+    const file = fs.readdirSync(dirs_knowFace)[idx];
+    const filePath = path.join(dirs_knowFace, file);
 
     const base64Image = fs.readFileSync(filePath, { encoding: 'base64' });
     listFile.push(base64Image)
@@ -73,17 +85,35 @@ io.on('connection', function(socket) {
     });
   }
 
+  function getKnowingFace() {
+    return new Promise((resolve, reject) => {
+      fs.readdir(dirs_knowFace, (err, files) => {
+        if (err) reject(err);
+        resolve(files);
+      });
+    });
+  }
+
   // fungsi untuk mengupdate daftar file dan mengirim ke socket
   async function updateFileList() {
     try {
-      const files = await getFileList();
-      fileList = files;
-      let listBase64Img = readFileImage(fileList)
+      const unknowFace = await getFileList();
+      const knowingFace = await getKnowingFace();
+
+      fileLists = unknowFace;
+      let listBase64Img = readFileImageUnknowFace(fileLists)
       socket.emit('count_unknowFace', {
-        total: fileList.length,
-        allFiles: fileList,
+        total: fileLists.length,
+        allFiles: fileLists,
         image: listBase64Img
       });
+
+      let listBase64ImgKnowFaces = readFileImageKnowFace(knowingFace)
+      socket.emit('knowFaces', {
+        total: unknowFace.length,
+        allFiles: knowingFace,
+        image: listBase64ImgKnowFaces
+      })
     } catch (err) {
       console.error(err);
     }

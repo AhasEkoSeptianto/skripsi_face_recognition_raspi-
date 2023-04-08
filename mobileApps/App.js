@@ -47,17 +47,26 @@ function Startup({ navigation }){
   const [ allImageUnknow, setAllImageUnknow ] = useState([])
   const [ cctv, setCctv ] = useState('')
   const [ allFileName, setAllFileName ] = useState([])
+  
+  const [ imgKnowFace, setImgKnowFace ] = useState([])
+  const [ allFileNameKnowFace, setAllFileNameKnowFace ]= useState([])
+
+  const [ updateSocket, setUpdateSocket ] = useState(null)
 
   useEffect(() => {
     socket.on("count_unknowFace", data => {
       setAllImageUnknow(data?.image)
       setAllFileName(data?.allFiles)
     })
+    socket.on('knowFaces', data => {
+      setImgKnowFace(data?.image)
+      setAllFileNameKnowFace(data?.allFiles)
+    })
     socket.on("imageData", data => {
       let image = `data:image/png;base64, ${data}`
       setCctv(image)
     })
-  },[socket])
+  },[socket, updateSocket])
 
   useEffect(() => {
 
@@ -74,7 +83,7 @@ function Startup({ navigation }){
             headerShown: false
           }}  
         >
-          {(props) => <GetRaspiDevice {...props} />}
+          {(props) => <GetRaspiDevice {...props} setUpdateSocket={setUpdateSocket} />}
         </Drawer.Screen>
         <Drawer.Screen name='Home' 
           options={{
@@ -93,7 +102,7 @@ function Startup({ navigation }){
             )
           }}
         >
-          {(props) => <Home {...props} cctv={cctv} allImageUnknow={allImageUnknow} />}
+          {(props) => <Home {...props} cctv={cctv} allImageUnknow={allImageUnknow} setUpdateSocket={setUpdateSocket} />}
         </Drawer.Screen>
         <Drawer.Screen 
           name='WajahTidakDiketahui' 
@@ -102,6 +111,15 @@ function Startup({ navigation }){
           }}
         >
           {(props) => <WajahTidakDiketahui {...props} allImageUnknow={allImageUnknow} />}
+        </Drawer.Screen>
+
+        <Drawer.Screen 
+          name='WajahDiketahui' 
+          options={{
+            title: 'Dataset / Wajah tersimpan'
+          }}
+        >
+          {(props) => <DataSet {...props} imgKnowFace={imgKnowFace} allFileNameKnowFace={allFileNameKnowFace} />}
         </Drawer.Screen>
 
         <Drawer.Screen 
@@ -119,7 +137,7 @@ function Startup({ navigation }){
   )
 }
 
-function GetRaspiDevice({ navigation }){
+function GetRaspiDevice({ navigation, setUpdateSocket }){
   const [ formRaspiID, setFormRaspiID ] = useState('')
   const [ loadingSubmit, setLoadingSubmit ] = useState(false)
   const [ alert, setAlert ] = useState('')
@@ -130,15 +148,11 @@ function GetRaspiDevice({ navigation }){
       .then(async res => {
         if (res?.data?.data?.length > 0){
           let host = res?.data?.data?.[0]?.mobileAppsCon?.replace('https://', 'ws://')?.replace("\n", "")
-          console.log(host , '<==============================')
           socket = await io(host, {
               transports: ["websocket", "polling"],
           })
-          console.log(host)
-          await Storage.setItem({
-            key: 'raspiID',
-            value: formRaspiID
-          })
+          // await Storage.setItem({ key: 'raspiID', value: formRaspiID })
+          await Storage.setItem({ key: '@storage', value: JSON.stringify(res?.data?.data?.[0]) })
           navigation.navigate("Home")
           setFormRaspiID('')
         }else{
@@ -156,8 +170,14 @@ function GetRaspiDevice({ navigation }){
   },[])
 
   const Setup = async () => {
-    let isHaveRaspiID = await Storage.getItem({ key: 'raspiID' })
+    let isHaveRaspiID = await Storage.getItem({ key: '@storage' })
     if(isHaveRaspiID){
+      let storage = JSON.parse(isHaveRaspiID)
+      let host = storage?.mobileAppsCon?.replace('https://', 'ws://')?.replace("\n", "")
+      socket = await io(host, {
+          transports: ["websocket", "polling"],
+      })
+      setUpdateSocket(Math.random())
       navigation.navigate('Home')
     }
   }
@@ -188,20 +208,20 @@ function GetRaspiDevice({ navigation }){
 
 
 function Home({ navigation, cctv, allImageUnknow }){
-  console.log(socket)
 
   const [ raspiID, setRaspiID ] = useState('')
   
-  useFocusEffect(() => {
+  useEffect(() => {
     Setup()
-    // console.log(socket)
-  })
+  },[])
 
-  
+
   const Setup = async () => {
-    let isHaveRaspiID = await Storage.getItem({ key: 'raspiID' })
+    let isHaveRaspiID = await Storage.getItem({ key: '@storage' })
     if (isHaveRaspiID){
-      setRaspiID(isHaveRaspiID)
+      let storage = JSON.parse(isHaveRaspiID)
+      setRaspiID(storage.raspi_id)
+
     }
   }
 
@@ -306,6 +326,45 @@ function SaveFaces({ navigation, route, allImageUnknow, allFileName }){
     </View>
   )
 } 
+
+function DataSet({ navigation, allFileNameKnowFace, imgKnowFace }){
+  return (
+    <View style={{ marginTop: 5 }}>
+      <ScrollView>
+        {imgKnowFace?.map((item, key) => (
+          <View style={{ backgroundColor: 'white', marginBottom: 5, padding: 10, marginHorizontal: 10, borderRadius: 5, flexDirection: 'row', alignItems:'flex-start', justifyContent: 'space-around' }}>
+            <Image 
+              key={key}
+              style={{ width: 100, height: 100, borderRadius: 5 }}
+              source={{
+                uri: `data:image/png;base64, ${item}`
+              }}
+            />
+            <View style={{ height: 100, flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 13, marginBottom: 10 }}>Nama : {allFileNameKnowFace?.[key]}</Text>
+              <Text style={{ fontSize: 13 }}>Tanggal Terekam : 1 juni 2022 18.12</Text>
+            </View>
+          </View>
+        ))}
+        {imgKnowFace?.map((item, key) => (
+          <View style={{ backgroundColor: 'white', marginBottom: 5, padding: 10, marginHorizontal: 10, borderRadius: 5, flexDirection: 'row', alignItems:'flex-start', justifyContent: 'space-around' }}>
+            <Image 
+              key={key}
+              style={{ width: 100, height: 100, borderRadius: 5 }}
+              source={{
+                uri: `data:image/png;base64, ${item}`
+              }}
+            />
+            <View style={{ height: 100, flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 13, marginBottom: 10 }}>Nama : {allFileNameKnowFace?.[key]}</Text>
+              <Text style={{ fontSize: 13 }}>Tanggal Terekam : 1 juni 2022 18.12</Text>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
