@@ -19,7 +19,7 @@ with open('IPESP32CAM.txt') as f:
     IP = f.read()
     URL = "http://" +  IP + "/cam-lo.jpg"
 
-
+print(URL)
 # setup dataset
 dataSet = []
 listDir = os.listdir('./dataSet')
@@ -102,7 +102,7 @@ while True:
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(small_frame, name, (left + 6, bottom - 6), font, 0.3, (255, 255, 255), 1)
         
-        cv2.imshow("frame", small_frame)
+        #cv2.imshow("frame", small_frame)
 
         # menyimpan gambar sebagai base 64
         retval, buffer = cv2.imencode('.jpg', small_frame)
@@ -113,8 +113,8 @@ while True:
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    except(err):
-        console.log(err)
+    except:
+        print("err")
 
     
 
