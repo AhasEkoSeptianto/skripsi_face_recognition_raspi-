@@ -89,10 +89,11 @@ function Startup({ navigation }){
           options={{
             headerRight: () => (
               <TouchableOpacity onPress={async () => {
-                console.log("clicked")
                 await Storage.setItem({key: 'raspiID', value: "" })
                   .then(res => {
                     navigation.navigate('GetRaspi')
+                    socket.disconnect()
+                    socket.close()
                   }).catch(err => {
 
                   })
