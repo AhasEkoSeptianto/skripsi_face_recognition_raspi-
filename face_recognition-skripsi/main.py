@@ -5,7 +5,7 @@ import os
 from PIL import Image
 import requests
 import base64
-
+import time
 
 
 # set config webcam
@@ -22,24 +22,36 @@ with open('IPESP32CAM.txt') as f:
 print(URL)
 # setup dataset
 dataSet = []
+unknowFaceSet = []
 listDir = os.listdir('./dataSet')
 faceName = []
 isUnkowFace = False
 
 # untuk update dataset
 def setup_dataSet():
-    for files in listDir:
+    for files in os.listdir('./dataSet'):
         pict = face_recognition.load_image_file('dataSet/' + files)
         face_locations_pict = face_recognition.face_locations(pict)
         face_encodings = face_recognition.face_encodings(pict, face_locations_pict)
 
         for face in face_encodings:
             dataSet.append(face)
+    
+    
+    for files in os.listdir('./unknowFace'):
+        pict = face_recognition.load_image_file('unknowFace/' + files)
+        face_locations_pict = face_recognition.face_locations(pict)
+        face_encodings = face_recognition.face_encodings(pict, face_locations_pict)
+
+        for face in face_encodings:
+            unknowFaceSet.append(face)
         
-    isUnkowFace = False
+    
 
 # menyimpan wajah yang tidak diketahui
 def SaveUnknowFaces(frame, face_locations):
+
+
     # Iterate through each face location
     for face_location in face_locations:
         # Extract the coordinates of the face location
@@ -62,6 +74,8 @@ setup_dataSet()
 # 
 while True:
     dataSets = dataSet
+    unknowFaceSets = unknowFaceSet
+    isUnkowFaces = isUnkowFace
     # ret, frame = video_capture.read()
 
     try: 
@@ -77,7 +91,7 @@ while True:
         face_encodings = face_recognition.face_encodings(small_frame, face_locations)
         
         faceName = []
-
+        print(isUnkowFace, '<==== is unknow face')
         # bandingkan kedua encoding wajah
         for face_encoding in face_encodings:
             matches = face_recognition.compare_faces(dataSets, face_encoding)
@@ -86,12 +100,18 @@ while True:
                 first_match_index = matches.index(True)
                 name = listDir[first_match_index]
                 faceName.append(name)
-            elif not isUnkowFace:
-                name = "unknow"
-                faceName.append(name)
-                face_locations_hd = face_recognition.face_locations(frame)
-                SaveUnknowFaces( frame ,face_locations_hd)
-                isUnkowFace = True
+            else:
+                
+                isMatchesUnknowFace = face_recognition.compare_faces(unknowFaceSets, face_encoding)
+                if True in isMatchesUnknowFace:
+                    print("mathches")
+                else:
+                    name = "unknow"
+                    faceName.append(name)
+                    face_locations_hd = face_recognition.face_locations(frame)
+                    SaveUnknowFaces( frame ,face_locations_hd)
+
+                
 
         for (top, right, bottom, left), name in zip(face_locations, faceName):
             
@@ -102,7 +122,7 @@ while True:
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(small_frame, name, (left + 6, bottom - 6), font, 0.3, (255, 255, 255), 1)
         
-        #cv2.imshow("frame", small_frame)
+        cv2.imshow("frame", small_frame)
 
         # menyimpan gambar sebagai base 64
         retval, buffer = cv2.imencode('.jpg', small_frame)
@@ -113,8 +133,8 @@ while True:
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    except:
-        print("err")
+    except BaseException as e:
+        print(str(e))
 
     
 
