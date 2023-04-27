@@ -79,6 +79,9 @@ export default function App() {
     <Fragment>
     <StatusBar style="auto" />
     {/* <Text>tes</Text> */}
+ 
+    {/* fqhqfKdjR2-YXO6LY9CvlR:APA91bEI9SJYzxoMLs4E8FY8fxiE2zqbes_QQ4vPOd3S586b-Cxj0SzL7ecUXplda3aRKRgNIR33iEtx2koNG0Q_qv3ypiDs8wFzs6cA_PAvoSw2o4pq_vPYnDmgMtbc6ohEDG0slxhM */}
+
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="startup" options={{ headerShown: false }}>

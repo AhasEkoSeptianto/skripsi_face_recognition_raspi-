@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import face_recognition
+import subprocess
 import os
 from PIL import Image
 import requests
@@ -110,8 +111,8 @@ while True:
                     faceName.append(name)
                     face_locations_hd = face_recognition.face_locations(frame)
                     SaveUnknowFaces( frame ,face_locations_hd)
+                    process = subprocess.Popen(['node', './../server_facerecog/sendPushNotification.js'], stdout=subprocess.PIPE)
 
-                
 
         for (top, right, bottom, left), name in zip(face_locations, faceName):
             
@@ -122,7 +123,7 @@ while True:
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(small_frame, name, (left + 6, bottom - 6), font, 0.3, (255, 255, 255), 1)
         
-        cv2.imshow("frame", small_frame)
+        # cv2.imshow("frame", small_frame)
 
         # menyimpan gambar sebagai base 64
         retval, buffer = cv2.imencode('.jpg', small_frame)
