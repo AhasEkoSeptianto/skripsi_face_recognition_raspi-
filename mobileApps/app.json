@@ -18,13 +18,20 @@
       "supportsTablet": true
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/cctv.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.ekozi.mobileApps"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9248e5cf-ed34-424b-bed5-13fcaa4a306d"
+      }
     }
   }
 }

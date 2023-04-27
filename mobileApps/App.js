@@ -15,6 +15,8 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { io } from 'socket.io-client';
 import { Storage } from 'expo-storage'
 import axios from 'axios';
+import {PermissionsAndroid} from 'react-native';
+import messaging from '@react-native-firebase/messaging';
 
 var socket = io("ws://tired-chefs-prove-103-119-62-12.loca.lt//", {
 // var socket = io("ws://skripsiAhasEkoSeptianto.com/", {
@@ -27,9 +29,56 @@ const Drawer = createDrawerNavigator();
 
 export default function App() {
 
+  async function requestUserPermission() {
+  const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    if (enabled) {
+      console.log('Authorization status:', authStatus);
+    }
+  }
+
+  useEffect(() => {
+     PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+     messaging().getToken()
+      .then(async token => {
+        console.log(token)
+      }).catch(err => {
+        console.log(err)
+      })
+
+      messaging()
+        .getInitialNotification()
+        .then(async remoteMsg => {
+          if (remoteMsg){
+            console.log('notification cause app to open from quit state: ', remoteMsg.notification)
+          }
+        })
+
+      messaging()
+        .onNotificationOpenedApp(async remoteMsg => {
+          console.log("Notification caused app to open from background state:", remoteMsg.notification)
+        })
+      
+      // register background handler
+      messaging()
+        .setBackgroundMessageHandler(async remoteMsg => {
+          console.log("Message handled in the background", remoteMsg)
+        })
+
+      const unsubscribe = messaging().onMessage(async remoteMsg => {
+        Alert.alert("A new FCM message arrived !", JSON.stringify(remoteMsg))
+      })
+
+      return unsubscribe
+  },[])
+
   return (
     <Fragment>
     <StatusBar style="auto" />
+    {/* <Text>tes</Text> */}
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="startup" options={{ headerShown: false }}>
@@ -68,9 +117,6 @@ function Startup({ navigation }){
     })
   },[socket, updateSocket])
 
-  useEffect(() => {
-
-  },[navigation])
 
   return (
     <Fragment>
