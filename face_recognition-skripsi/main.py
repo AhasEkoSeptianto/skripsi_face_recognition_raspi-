@@ -7,10 +7,11 @@ from PIL import Image
 import requests
 import base64
 import time
-
+import threading
 
 # set config webcam
-URL = "http://<IP>/cam-lo.jpg"
+# URL = "http://<IP>/cam-lo.jpg"
+URL = "http://<IP>/cam-hi.jpg"
 # video_capture = cv2.VideoCapture(URL + ":81/stream")
 # video_capture = cv2.VideoCapture(URL + "/capture")
 # video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
@@ -69,6 +70,9 @@ def SaveUnknowFaces(frame, face_locations):
 
     setup_dataSet()
 
+def SendMesseging( a ):
+    subprocess.Popen(['node', './../server_facerecog/sendPushNotification.js'], stdout=subprocess.PIPE)
+
 
 setup_dataSet()
 
@@ -85,14 +89,14 @@ while True:
         frame = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
 
         
-
-        small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
+        small_frame = frame
+        # small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
         
         face_locations = face_recognition.face_locations(small_frame)
         face_encodings = face_recognition.face_encodings(small_frame, face_locations)
         
         faceName = []
-        print(isUnkowFace, '<==== is unknow face')
+        # print(isUnkowFace, '<==== is unknow face')
         # bandingkan kedua encoding wajah
         for face_encoding in face_encodings:
             matches = face_recognition.compare_faces(dataSets, face_encoding)
@@ -107,11 +111,13 @@ while True:
                 if True in isMatchesUnknowFace:
                     print("mathches")
                 else:
+                    t1 = threading.Thread(target=SendMesseging, args=(10,))
+                    t1.start()
                     name = "unknow"
                     faceName.append(name)
                     face_locations_hd = face_recognition.face_locations(frame)
                     SaveUnknowFaces( frame ,face_locations_hd)
-                    process = subprocess.Popen(['node', './../server_facerecog/sendPushNotification.js'], stdout=subprocess.PIPE)
+
 
 
         for (top, right, bottom, left), name in zip(face_locations, faceName):
@@ -123,7 +129,7 @@ while True:
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(small_frame, name, (left + 6, bottom - 6), font, 0.3, (255, 255, 255), 1)
         
-        # cv2.imshow("frame", small_frame)
+        cv2.imshow("frame", small_frame)
 
         # menyimpan gambar sebagai base 64
         retval, buffer = cv2.imencode('.jpg', small_frame)
