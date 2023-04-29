@@ -18,6 +18,9 @@ const raspiSchema = new mongoose.Schema({
 	},
 	esp32cam_wifi_password: {
 		type: String,
+	},
+	messanggingID: {
+		type: String
 	}
 })
 

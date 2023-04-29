@@ -28,23 +28,15 @@ const Drawer = createDrawerNavigator();
 
 
 export default function App() {
-
-  async function requestUserPermission() {
-  const authStatus = await messaging().requestPermission();
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-    if (enabled) {
-      console.log('Authorization status:', authStatus);
-    }
-  }
+  const [ token, setToken ] = useState('')
+  
 
   useEffect(() => {
      PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
      messaging().getToken()
       .then(async token => {
-        console.log(token)
+        setToken(token)
+        // console.log(token)
       }).catch(err => {
         console.log(err)
       })
@@ -81,21 +73,20 @@ export default function App() {
     {/* <Text>tes</Text> */}
  
     {/* fqhqfKdjR2-YXO6LY9CvlR:APA91bEI9SJYzxoMLs4E8FY8fxiE2zqbes_QQ4vPOd3S586b-Cxj0SzL7ecUXplda3aRKRgNIR33iEtx2koNG0Q_qv3ypiDs8wFzs6cA_PAvoSw2o4pq_vPYnDmgMtbc6ohEDG0slxhM */}
-
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="startup" options={{ headerShown: false }}>
-            {(props) => <Startup {...props} />}
+            {(props) => <Startup {...props} messagingToken={token} />}
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
+      {/* <Text>{JSON.stringify(token)}</Text> */}
     </Fragment>
     
   );
 }
 
-function Startup({ navigation }){
-
+function Startup({ navigation, messagingToken }){
   const [ allImageUnknow, setAllImageUnknow ] = useState([])
   const [ cctv, setCctv ] = useState('')
   const [ allFileName, setAllFileName ] = useState([])
@@ -120,6 +111,30 @@ function Startup({ navigation }){
     })
   },[socket, updateSocket])
 
+  const LogoutApps = async () => {
+    raspiID = ""
+    let isHaveRaspiID = await Storage.getItem({ key: '@storage' })
+    if (isHaveRaspiID){
+      let storage = JSON.parse(isHaveRaspiID)
+      raspiID = storage.raspi_id
+    }
+    
+    await axios.post("https://raspi-gateway.netlify.app/api/MobileAppsLogout?raspi_id=" + raspiID + "&messagingID=" + messagingToken)
+      .then(async res => {
+        
+        await Storage.setItem({key: 'raspiID', value: "" })
+          .then(res => {
+            navigation.navigate('GetRaspi')
+            socket.disconnect()
+            socket.close()
+          }).catch(err => {
+
+          })
+        
+      }).catch(err => {
+
+      })
+  }
 
   return (
     <Fragment>
@@ -132,21 +147,12 @@ function Startup({ navigation }){
             headerShown: false
           }}  
         >
-          {(props) => <GetRaspiDevice {...props} setUpdateSocket={setUpdateSocket} />}
+          {(props) => <GetRaspiDevice {...props} messagingToken={messagingToken} setUpdateSocket={setUpdateSocket} />}
         </Drawer.Screen>
         <Drawer.Screen name='Home' 
           options={{
             headerRight: () => (
-              <TouchableOpacity onPress={async () => {
-                await Storage.setItem({key: 'raspiID', value: "" })
-                  .then(res => {
-                    navigation.navigate('GetRaspi')
-                    socket.disconnect()
-                    socket.close()
-                  }).catch(err => {
-
-                  })
-              }}>
+              <TouchableOpacity onPress={LogoutApps}>
                 <Text style={{ marginRight: 10 }}>Keluar</Text>
               </TouchableOpacity>
             )
@@ -187,14 +193,14 @@ function Startup({ navigation }){
   )
 }
 
-function GetRaspiDevice({ navigation, setUpdateSocket }){
+function GetRaspiDevice({ navigation, setUpdateSocket, messagingToken }){
   const [ formRaspiID, setFormRaspiID ] = useState('')
   const [ loadingSubmit, setLoadingSubmit ] = useState(false)
   const [ alert, setAlert ] = useState('')
-
   const Submit = async () => {
     setLoadingSubmit(true)
-    await axios.get("https://raspi-gateway.netlify.app/api/raspi_config?raspi_id=" + formRaspiID)
+    await axios.get("https://raspi-gateway.netlify.app/api/raspi_config?raspi_id=" + formRaspiID + "&messagingID=" + messagingToken)
+    // await axios.get("http://192.168.100.9:3000/api/raspi_config?raspi_id=" + formRaspiID + "&messagingID=" + messagingToken)
       .then(async res => {
         if (res?.data?.data?.length > 0){
           let host = res?.data?.data?.[0]?.mobileAppsCon?.replace('https://', 'ws://')?.replace("\n", "")

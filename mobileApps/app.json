@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "mobileApps",
+    "name": "CCTV APPS",
     "slug": "mobileApps",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/cctv.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/mahasiswa-animated.jpg",
+      "image": "./assets/mahasiswa-animated.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

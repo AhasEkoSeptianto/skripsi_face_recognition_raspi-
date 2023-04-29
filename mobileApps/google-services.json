@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "439351457231-g03cd5k9q91se7rtpsiip0dfij63cviu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ekozi.mobileApps",
+            "certificate_hash": "c1de222b158fa620614d00734e25769cb4be943b"
+          }
+        },
+        {
           "client_id": "439351457231-odb9n27kgp4qnppjv8r5j7o6r01qtl7a.apps.googleusercontent.com",
           "client_type": 3
         }

@@ -1,30 +1,39 @@
 var admin = require("firebase-admin");
-var fcm = require('fcm-notification');
 var serviceAccount = require("./privateKey.json");
-const certPath = admin.credential.cert(serviceAccount);
-var FCM = new fcm(certPath);
+const  m = require("./mongodb/mongoose.js")
 
-const sendPushNotification= (title, body) => {
-    let fcm_token = "fqhqfKdjR2-YXO6LY9CvlR:APA91bEI9SJYzxoMLs4E8FY8fxiE2zqbes_QQ4vPOd3S586b-Cxj0SzL7ecUXplda3aRKRgNIR33iEtx2koNG0Q_qv3ypiDs8wFzs6cA_PAvoSw2o4pq_vPYnDmgMtbc6ohEDG0slxhM"
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
+
+
+const sendPushNotification= async (title, body) => {
+    let token = await m.getTokenNotification()
+    token = token?.[0]?.messanggingID?.split(',')
+    
     try{
-        let message = {
-            android: {
-                notification: {
-                    title: title,
-                    body: body,
-                },
-            },
-            token: fcm_token
-        };
-
-        FCM.send(message, function(err, resp) {
-            if(err){
-                throw err;
-            }else{
-                console.log('Successfully sent notification');
+        
+        token?.forEach(fcm_token => {
+            if (fcm_token){
+                let message = {
+                    android: {
+                        notification: {
+                            title: title,
+                            body: body,
+                        },
+                    },
+                    token: fcm_token
+                };
+        
+                admin.messaging().send(message)
+                    .then(res => {
+                        console.log(res)
+                    }).catch(err => {
+                        console.log(err)
+                    })
             }
-        });
+        })
 
     }catch(err){
         throw err;
@@ -32,4 +41,4 @@ const sendPushNotification= (title, body) => {
 
     }
     
-sendPushNotification("Hallo", "Apa Kabar")
+sendPushNotification("Peringatan !!", "Terdeteksi wajah seseorang yang tidak dikenal")
