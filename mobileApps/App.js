@@ -28,15 +28,15 @@ const Drawer = createDrawerNavigator();
 
 
 export default function App() {
+
   const [ token, setToken ] = useState('')
-  
 
   useEffect(() => {
      PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
      messaging().getToken()
       .then(async token => {
+        console.log(token)
         setToken(token)
-        // console.log(token)
       }).catch(err => {
         console.log(err)
       })
@@ -73,14 +73,23 @@ export default function App() {
     {/* <Text>tes</Text> */}
  
     {/* fqhqfKdjR2-YXO6LY9CvlR:APA91bEI9SJYzxoMLs4E8FY8fxiE2zqbes_QQ4vPOd3S586b-Cxj0SzL7ecUXplda3aRKRgNIR33iEtx2koNG0Q_qv3ypiDs8wFzs6cA_PAvoSw2o4pq_vPYnDmgMtbc6ohEDG0slxhM */}
+<<<<<<< Updated upstream
       <NavigationContainer>
+=======
+      <Text>{JSON.stringify(token)}</Text>
+      {/* <NavigationContainer>
+>>>>>>> Stashed changes
         <Stack.Navigator>
           <Stack.Screen name="startup" options={{ headerShown: false }}>
             {(props) => <Startup {...props} messagingToken={token} />}
           </Stack.Screen>
         </Stack.Navigator>
+<<<<<<< Updated upstream
       </NavigationContainer>
       {/* <Text>{JSON.stringify(token)}</Text> */}
+=======
+      </NavigationContainer> */}
+>>>>>>> Stashed changes
     </Fragment>
     
   );
