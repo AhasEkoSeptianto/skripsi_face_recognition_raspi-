@@ -9,6 +9,7 @@ admin.initializeApp({
 
 
 const sendPushNotification= async (title, body) => {
+    console.log('heress')
     let token = await m.getTokenNotification()
     token = token?.[0]?.messanggingID?.split(',')
     
@@ -41,4 +42,5 @@ const sendPushNotification= async (title, body) => {
 
     }
     
-sendPushNotification("Peringatan !!", "Terdeteksi wajah seseorang yang tidak dikenal")
+module.exports = { sendPushNotification }
+// sendPushNotification("Peringatan !!", "Terdeteksi wajah seseorang yang tidak dikenal")

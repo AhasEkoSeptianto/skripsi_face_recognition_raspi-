@@ -6,6 +6,7 @@ const chokidar = require('chokidar');
 const path = require('path');
 const cors = require('cors')
 const ip  = require('ip')
+const sendPushNotification = require('./sendPushNotification')
 
 // middleware untuk mengakses file statis
 app.use(express.static(__dirname + '/public'));
@@ -70,6 +71,7 @@ io.on('connection', function(socket) {
   watcher
     .on('add', () => {
       updateFileList();
+      sendPushNotification.sendPushNotification("Peringatan !!", "Terdeteksi wajah seseorang yang tidak dikenal")   
     })
     .on('unlink', () => {
       updateFileList();
@@ -113,7 +115,8 @@ io.on('connection', function(socket) {
         total: unknowFace.length,
         allFiles: knowingFace,
         image: listBase64ImgKnowFaces
-      })
+      })   
+    
     } catch (err) {
       console.error(err);
     }
