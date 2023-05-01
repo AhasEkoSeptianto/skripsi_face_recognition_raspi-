@@ -18,7 +18,8 @@ import axios from 'axios';
 import {PermissionsAndroid} from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 
-var socket = io("ws://tired-chefs-prove-103-119-62-12.loca.lt//", {
+var socket = io("ws://192.168.100.9:3001", {
+// var socket = io("ws://tired-chefs-prove-103-119-62-12.loca.lt//", {
 // var socket = io("ws://skripsiAhasEkoSeptianto.com/", {
     transports: ["websocket", "polling"],
 })
@@ -73,23 +74,14 @@ export default function App() {
     {/* <Text>tes</Text> */}
  
     {/* fqhqfKdjR2-YXO6LY9CvlR:APA91bEI9SJYzxoMLs4E8FY8fxiE2zqbes_QQ4vPOd3S586b-Cxj0SzL7ecUXplda3aRKRgNIR33iEtx2koNG0Q_qv3ypiDs8wFzs6cA_PAvoSw2o4pq_vPYnDmgMtbc6ohEDG0slxhM */}
-<<<<<<< Updated upstream
       <NavigationContainer>
-=======
-      <Text>{JSON.stringify(token)}</Text>
-      {/* <NavigationContainer>
->>>>>>> Stashed changes
         <Stack.Navigator>
           <Stack.Screen name="startup" options={{ headerShown: false }}>
             {(props) => <Startup {...props} messagingToken={token} />}
           </Stack.Screen>
         </Stack.Navigator>
-<<<<<<< Updated upstream
       </NavigationContainer>
       {/* <Text>{JSON.stringify(token)}</Text> */}
-=======
-      </NavigationContainer> */}
->>>>>>> Stashed changes
     </Fragment>
     
   );
@@ -279,7 +271,6 @@ function Home({ navigation, cctv, allImageUnknow }){
   useEffect(() => {
     Setup()
   },[])
-
 
   const Setup = async () => {
     let isHaveRaspiID = await Storage.getItem({ key: '@storage' })
