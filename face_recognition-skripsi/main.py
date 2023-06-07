@@ -5,20 +5,13 @@ import os
 from PIL import Image
 import requests
 import base64
-import time
-import threading
 
 # set config webcam
-# URL = "http://<IP>/cam-lo.jpg"
 URL = "http://<IP>/cam-hi.jpg"
-# video_capture = cv2.VideoCapture(URL + ":81/stream")
-# video_capture = cv2.VideoCapture(URL + "/capture")
-# video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-# video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 with open('IPESP32CAM.txt') as f:
     IP = f.read()
-    URL = "http://" +  IP + "/cam-lo.jpg"
+    URL = "http://" +  IP + "/cam-hi.jpg"
 
 print(URL)
 # setup dataset
@@ -78,15 +71,16 @@ while True:
     unknowFaceSets = unknowFaceSet
     isUnkowFaces = isUnkowFace
     # ret, frame = video_capture.read()
+    
 
+    print("here")
     try: 
         response = requests.get(URL)
         img_array = np.array(bytearray(response.content), dtype=np.uint8)
         frame = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-
         
-        small_frame = frame
-        # small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
+        # small_frame = frame
+        small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
         
         face_locations = face_recognition.face_locations(small_frame)
         face_encodings = face_recognition.face_encodings(small_frame, face_locations)
