@@ -3,18 +3,21 @@ import numpy as np
 import face_recognition
 import os
 from PIL import Image
-import requests
 import base64
+import threading
+import websocket
+from datetime import datetime
 
-# set config webcam
-URL = "http://<IP>/cam-hi.jpg"
+# URL WebSocket server
+websocket_url = "ws://192.168.100.27/websocket"
+
 
 with open('IPESP32CAM.txt') as f:
     IP = f.read()
-    URL = "http://" +  IP + "/cam-hi.jpg"
+    websocket_url = "ws://"+ IP + "/websocket"
 
-print(URL)
 # setup dataset
+img_base64 = ""
 dataSet = []
 unknowFaceSet = []
 listDir = os.listdir('./dataSet')
@@ -58,35 +61,59 @@ def SaveUnknowFaces(frame, face_locations):
         pil_image = Image.fromarray(face_image)
 
         # Save the face image
-        pil_image.save(f"unknowFace/{left}_{top}_{right}_{bottom}.jpg")
+        time = datetime.today().strftime('%Y_%m_%d_%H_%M')
+        pil_image.save(f"unknowFace/{time}.jpg")
 
     setup_dataSet()
 
 
 setup_dataSet()
 
+def on_messageWs(ws, message):
+    global img_base64
+    # Callback function untuk menangani pesan yang diterima
+    img_base64 = message
+    # print(f"Received message: {message}")
+
+def on_openWs(ws):
+    # Callback function untuk menangani pembukaan koneksi
+    print("Connection opened")
+
+websocket_url = "ws://192.168.100.27/websocket"
+
+# Inisialisasi WebSocket clientasd
+ws = websocket.WebSocketApp(websocket_url,
+                            on_message=on_messageWs)
+ws.on_open = on_openWs
+
+# Jalankan client dalam mode asinkron
+thread = threading.Thread(target=ws.run_forever)
+thread.daemon = True
+thread.start()
+
 # 
 while True:
     dataSets = dataSet
     unknowFaceSets = unknowFaceSet
     isUnkowFaces = isUnkowFace
-    # ret, frame = video_capture.read()
-    
 
-    print("here")
     try: 
-        response = requests.get(URL)
-        img_array = np.array(bytearray(response.content), dtype=np.uint8)
+        decoded_data = base64.b64decode(img_base64)
+
+        # Mengubah data gambar menjadi array numpy dengan tipe data uint8
+        img_array = np.frombuffer(decoded_data, dtype=np.uint8)
+
+        # Mendecode array menjadi objek gambar menggunakan OpenCV
         frame = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
         
         # small_frame = frame
         small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
         
-        face_locations = face_recognition.face_locations(small_frame)
+        face_locations = face_recognition.face_locations(small_frame, number_of_times_to_upsample=3)
         face_encodings = face_recognition.face_encodings(small_frame, face_locations)
         
         faceName = []
-        # print(isUnkowFace, '<==== is unknow face')
+        
         # bandingkan kedua encoding wajah
         for face_encoding in face_encodings:
             matches = face_recognition.compare_faces(dataSets, face_encoding)
@@ -117,7 +144,7 @@ while True:
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(small_frame, name, (left + 6, bottom - 6), font, 0.3, (255, 255, 255), 1)
         
-        # cv2.imshow("frame", small_frame)
+        cv2.imshow("frame", small_frame)
 
         # menyimpan gambar sebagai base 64
         retval, buffer = cv2.imencode('.jpg', small_frame)
