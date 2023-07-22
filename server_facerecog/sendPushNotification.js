@@ -15,7 +15,8 @@ const sendPushNotification= async (title, body) => {
     
     try{
         
-        token?.forEach(fcm_token => {
+        token?.forEach(async fcm_token => {
+			console.log(fcm_token, '<=====')
             if (fcm_token){
                 let message = {
                     android: {
@@ -27,16 +28,13 @@ const sendPushNotification= async (title, body) => {
                     token: fcm_token
                 };
         
-                admin.messaging().send(message)
-                    .then(res => {
-                        console.log(res)
-                    }).catch(err => {
-                        console.log(err)
-                    })
+                const res = await admin.messaging().send(message)
+                console.log(res)
             }
         })
 
     }catch(err){
+    	console.log(err);
         throw err;
         }
 

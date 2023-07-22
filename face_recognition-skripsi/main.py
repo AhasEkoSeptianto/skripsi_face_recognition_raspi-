@@ -70,6 +70,7 @@ while True:
     dataSets = dataSet
     unknowFaceSets = unknowFaceSet
     isUnkowFaces = isUnkowFace
+    print("running...")
     # ret, frame = video_capture.read()
 
     try: 
@@ -88,7 +89,7 @@ while True:
         # small_frame = frame
         small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
         
-        face_locations = face_recognition.face_locations(small_frame)
+        face_locations = face_recognition.face_locations(small_frame, number_of_times_to_upsample=1)
         face_encodings = face_recognition.face_encodings(small_frame, face_locations)
         
         faceName = []
@@ -123,7 +124,7 @@ while True:
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(small_frame, name, (left + 6, bottom - 6), font, 0.3, (255, 255, 255), 1)
         
-        cv2.imshow("frame", small_frame)
+        #cv2.imshow("frame", small_frame)
 
         # menyimpan gambar sebagai base 64
         retval, buffer = cv2.imencode('.jpg', small_frame)

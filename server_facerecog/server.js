@@ -63,31 +63,7 @@ function readCapture() {
   return imageData;
 }
 
-// koneksi socket
-io.on("connection", function (socket) {
-  console.log("Client terhubung.");
-
-  let fileList = [];
-  // menggunakan chokidar untuk memonitor direktori
-  const watcher = chokidar.watch(dirs_unknowFace);
-  const watcherKnowface = chokidar.watch(dirs_knowFace);
-  watcher
-    .on("add", () => {
-      updateFileList();
-      sendPushNotification.sendPushNotification(
-        "Peringatan !!",
-        "Terdeteksi wajah seseorang yang tidak dikenal"
-      );
-    })
-    .on("unlink", () => {
-      updateFileList();
-    });
-
-  watcherKnowface.on("unlink", () => {
-    updateFileList();
-  });
-
-  // fungsi untuk mengambil daftar file dari direktori
+// fungsi untuk mengambil daftar file dari direktori
   function getFileList() {
     return new Promise((resolve, reject) => {
       fs.readdir(dirs_unknowFace, (err, files) => {
@@ -106,6 +82,34 @@ io.on("connection", function (socket) {
     });
   }
 
+
+// menggunakan chokidar untuk memonitor direktori
+  const watcher = chokidar.watch(dirs_unknowFace);
+  const watcherKnowface = chokidar.watch(dirs_knowFace);
+  watcher
+    .on("add", () => {
+      // updateFileList();
+      sendPushNotification.sendPushNotification(
+        "Peringatan !!",
+        "Terdeteksi wajah seseorang yang tidak dikenal"
+      );
+    })
+    .on("unlink", () => {
+      // updateFileList();
+    });
+
+  watcherKnowface.on("unlink", () => {
+    // updateFileList();
+  });
+
+// koneksi socket
+io.on("connection", function (socket) {
+  console.log("Client terhubung.");
+
+  let fileList = [];
+
+	watcher.on("add", () => updateFileList()).on("unlink", () => updateFileList())
+	watcherKnowface.on("unlink", () => updateFileList());
   // fungsi untuk mengupdate daftar file dan mengirim ke socket
   async function updateFileList() {
     try {
