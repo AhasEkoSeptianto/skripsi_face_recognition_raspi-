@@ -5,30 +5,20 @@ const io = require("socket.io")(server);
 const chokidar = require("chokidar");
 const path = require("path");
 const cors = require("cors");
-const ip = require("ip");
+const debounce = require("debounce");
 const sendPushNotification = require("./sendPushNotification");
-
+const m = require("./mongodb/mongoose");
 // middleware untuk mengakses file statis
-app.use(express.static(__dirname + "/public"));
 app.use(cors());
-//console.log("enabling cors...")
 
-// route untuk halaman utama
-app.get("/", function (req, res) {
-  res.sendFile(__dirname + "/index.html");
-  //	res.send({ msg: "success" });
-});
-
-app.get("/getIp", function (req, res) {
-  var ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-  console.log(ip);
-  res.send({ msg: "Okeh" });
-});
-
-//console.log(ip.address())
+// app.get("/getIp", function (req, res) {
+//   var ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+//   res.send({ msg: "Okeh" });
+// });
 
 const dirs_unknowFace = "./../face_recognition-skripsi/unknowFace/";
 const dirs_knowFace = "./../face_recognition-skripsi/dataSet/";
+
 const fs = require("fs");
 
 const readFileImageUnknowFace = (file_list) => {
@@ -63,80 +53,71 @@ function readCapture() {
   return imageData;
 }
 
-// fungsi untuk mengambil daftar file dari direktori
-  function getFileList() {
-    return new Promise((resolve, reject) => {
-      fs.readdir(dirs_unknowFace, (err, files) => {
-        if (err) reject(err);
-        resolve(files);
-      });
-    });
-  }
-
-  function getKnowingFace() {
-    return new Promise((resolve, reject) => {
-      fs.readdir(dirs_knowFace, (err, files) => {
-        if (err) reject(err);
-        resolve(files);
-      });
-    });
-  }
-
-
 // menggunakan chokidar untuk memonitor direktori
-  const watcher = chokidar.watch(dirs_unknowFace);
-  const watcherKnowface = chokidar.watch(dirs_knowFace);
-  watcher
-    .on("add", () => {
-      // updateFileList();
-      sendPushNotification.sendPushNotification(
-        "Peringatan !!",
-        "Terdeteksi wajah seseorang yang tidak dikenal"
-      );
-    })
-    .on("unlink", () => {
-      // updateFileList();
+const watcherunKnowFace = chokidar.watch(dirs_unknowFace);
+const watcherKnowface = chokidar.watch(dirs_knowFace);
+
+// fungsi untuk mengambil daftar file dari direktori
+function getFileList() {
+  return new Promise((resolve, reject) => {
+    fs.readdir(dirs_unknowFace, (err, files) => {
+      if (err) reject(err);
+      resolve(files);
+    });
+  });
+}
+
+function getKnowingFace() {
+  return new Promise((resolve, reject) => {
+    fs.readdir(dirs_knowFace, (err, files) => {
+      if (err) reject(err);
+      resolve(files);
+    });
+  });
+}
+
+// fungsi untuk mengupdate daftar file dan mengirim ke socket
+async function updateFileList(socket) {
+  try {
+    const unknowFace = await getFileList();
+    const knowingFace = await getKnowingFace();
+
+    fileLists = unknowFace;
+    let listBase64Img = readFileImageUnknowFace(fileLists);
+    socket?.emit("count_unknowFace", {
+      total: fileLists.length,
+      allFiles: fileLists,
+      image: listBase64Img,
     });
 
-  watcherKnowface.on("unlink", () => {
-    // updateFileList();
-  });
+    let listBase64ImgKnowFaces = readFileImageKnowFace(knowingFace);
+    socket?.emit("knowFaces", {
+      total: unknowFace.length,
+      allFiles: knowingFace,
+      image: listBase64ImgKnowFaces,
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+watcherunKnowFace.on("add", (path) => {
+  sendPushNotification.sendPushNotification(
+    "Peringatan !!",
+    "Terdeteksi wajah seseorang yang tidak dikenal"
+  );
+});
 
 // koneksi socket
 io.on("connection", function (socket) {
-  console.log("Client terhubung.");
-
-  let fileList = [];
-
-	watcher.on("add", () => updateFileList()).on("unlink", () => updateFileList())
-	watcherKnowface.on("unlink", () => updateFileList());
-  // fungsi untuk mengupdate daftar file dan mengirim ke socket
-  async function updateFileList() {
-    try {
-      const unknowFace = await getFileList();
-      const knowingFace = await getKnowingFace();
-
-      fileLists = unknowFace;
-      let listBase64Img = readFileImageUnknowFace(fileLists);
-      socket.emit("count_unknowFace", {
-        total: fileLists.length,
-        allFiles: fileLists,
-        image: listBase64Img,
-      });
-
-      let listBase64ImgKnowFaces = readFileImageKnowFace(knowingFace);
-      socket.emit("knowFaces", {
-        total: unknowFace.length,
-        allFiles: knowingFace,
-        image: listBase64ImgKnowFaces,
-      });
-    } catch (err) {
-      console.error(err);
-    }
-  }
+  watcherunKnowFace
+    .on("add", (path) => {
+      updateFileList();
+    })
+    .on("unlink", () => updateFileList());
 
   // inisialisasi daftar file
-  updateFileList();
+  updateFileList(socket);
 
   // capture cctv
   setInterval(() => {
@@ -157,6 +138,7 @@ io.on("connection", function (socket) {
           socket.emit("saveFaceSuccess", "fail");
         } else {
           socket.emit("saveFaceSuccess", "success");
+          updateFileList(socket);
         }
       });
     });
@@ -170,6 +152,20 @@ io.on("connection", function (socket) {
         socket.emit("deleteFace", "fail");
       } else {
         socket.emit("deleteFace", "success");
+        updateFileList(socket);
+      }
+    });
+  });
+
+  socket.on("deleteFaceUnknowface", (file) => {
+    const fileSrc = `${dirs_unknowFace}${file}`;
+    console.log(fileSrc);
+    fs.unlink(fileSrc, (err) => {
+      if (err) {
+        socket.emit("deleteFace", "fail");
+      } else {
+        socket.emit("deleteFace", "success");
+        updateFileList(socket);
       }
     });
   });
@@ -177,13 +173,12 @@ io.on("connection", function (socket) {
   // event untuk disconnect
   socket.on("disconnect", function () {
     console.log("Client terputus.");
-    watcher.close();
+    // watcher.close();
+    watcherKnowface.close();
   });
 });
 
 // jalankan server
 server.listen(3001, "0.0.0.0", function () {
-  console.log("Server berjalan pada port 3000");
-
-  //require("./startTunnel")
+  console.log("Server berjalan pada port 3001");
 });

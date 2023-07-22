@@ -6,6 +6,7 @@ from PIL import Image
 import requests
 import base64
 import time
+import datetime
 
 # set config webcam
 URL = "http://<IP>/cam-mid.jpg"
@@ -14,39 +15,14 @@ with open('IPESP32CAM.txt') as f:
     IP = f.read()
     URL = "http://" +  IP + "/cam-mid.jpg"
 
-# print(URL)
 # setup dataset
-dataSet = []
-unknowFaceSet = []
 listDir = os.listdir('./dataSet')
 faceName = []
 isUnkowFace = False
-
-# untuk update dataset
-def setup_dataSet():
-    for files in os.listdir('./dataSet'):
-        pict = face_recognition.load_image_file('dataSet/' + files)
-        face_locations_pict = face_recognition.face_locations(pict)
-        face_encodings = face_recognition.face_encodings(pict, face_locations_pict)
-
-        for face in face_encodings:
-            dataSet.append(face)
-    
-    
-    for files in os.listdir('./unknowFace'):
-        pict = face_recognition.load_image_file('unknowFace/' + files)
-        face_locations_pict = face_recognition.face_locations(pict)
-        face_encodings = face_recognition.face_encodings(pict, face_locations_pict)
-
-        for face in face_encodings:
-            unknowFaceSet.append(face)
-        
-    
+            
 
 # menyimpan wajah yang tidak diketahui
 def SaveUnknowFaces(frame, face_locations):
-
-
     # Iterate through each face location
     for face_location in face_locations:
         # Extract the coordinates of the face location
@@ -58,20 +34,43 @@ def SaveUnknowFaces(frame, face_locations):
         # Convert the face image to PIL format
         pil_image = Image.fromarray(face_image)
 
-        # Save the face image
-        pil_image.save(f"unknowFace/{left}_{top}_{right}_{bottom}.jpg")
+        now = datetime.datetime.now()
 
-    setup_dataSet()
+        formatted_time = now.strftime('%m(s)%d(s)%y(S)%H(d)%M(d)%S(d)%f')
+
+        
+        # Save the face image
+        pil_image.save(f"unknowFace/{formatted_time}.jpg")
+
+    # setup_dataSet()
 
 
 
 # 
 while True:
-    dataSets = dataSet
-    unknowFaceSets = unknowFaceSet
+    dataSets = []
+    unknowFaceSets = []
     isUnkowFaces = isUnkowFace
+
     print("running...")
     # ret, frame = video_capture.read()
+
+    for files in os.listdir('./dataSet'):
+        pict = face_recognition.load_image_file('dataSet/' + files)
+        face_locations_pict = face_recognition.face_locations(pict)
+        face_encodings = face_recognition.face_encodings(pict, face_locations_pict)
+
+        for face in face_encodings:
+            dataSets.append(face)
+
+
+    for files in os.listdir('./unknowFace'):
+        pict = face_recognition.load_image_file('unknowFace/' + files)
+        face_locations_pict = face_recognition.face_locations(pict)
+        face_encodings = face_recognition.face_encodings(pict, face_locations_pict)
+
+        for face in face_encodings:
+            unknowFaceSets.append(face)
 
     try: 
         response = requests.get(URL)
@@ -89,7 +88,7 @@ while True:
         # small_frame = frame
         small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
         
-        face_locations = face_recognition.face_locations(small_frame, number_of_times_to_upsample=1)
+        face_locations = face_recognition.face_locations(small_frame, number_of_times_to_upsample=3)
         face_encodings = face_recognition.face_encodings(small_frame, face_locations)
         
         faceName = []
@@ -124,7 +123,7 @@ while True:
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(small_frame, name, (left + 6, bottom - 6), font, 0.3, (255, 255, 255), 1)
         
-        #cv2.imshow("frame", small_frame)
+        # cv2.imshow("frame", small_frame)
 
         # menyimpan gambar sebagai base 64
         retval, buffer = cv2.imencode('.jpg', small_frame)

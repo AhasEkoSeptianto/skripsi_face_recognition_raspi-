@@ -17,6 +17,7 @@ import { Storage } from "expo-storage";
 import axios from "axios";
 import { PermissionsAndroid } from "react-native";
 import messaging from "@react-native-firebase/messaging";
+import { AiOutlineDelete } from "react-icons/ai";
 
 var socket = io("ws://192.168.100.9:3001", {
   // var socket = io("ws://tired-chefs-prove-103-119-62-12.loca.lt//", {
@@ -86,7 +87,6 @@ export default function App() {
       <StatusBar style="auto" />
       {/* <Text>tes</Text> */}
 
-      {/* fqhqfKdjR2-YXO6LY9CvlR:APA91bEI9SJYzxoMLs4E8FY8fxiE2zqbes_QQ4vPOd3S586b-Cxj0SzL7ecUXplda3aRKRgNIR33iEtx2koNG0Q_qv3ypiDs8wFzs6cA_PAvoSw2o4pq_vPYnDmgMtbc6ohEDG0slxhM */}
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="startup" options={{ headerShown: false }}>
@@ -94,7 +94,6 @@ export default function App() {
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
-      {/* <Text>{JSON.stringify(token)}</Text> */}
     </Fragment>
   );
 }
@@ -122,6 +121,10 @@ function Startup({ navigation, messagingToken }) {
       let image = `data:image/png;base64, ${data}`;
       setCctv(image);
     });
+
+    // return () => {
+    //   socket.close();
+    // };
   }, [socket, updateSocket]);
 
   const LogoutApps = async () => {
@@ -147,6 +150,14 @@ function Startup({ navigation, messagingToken }) {
             socket.close();
           })
           .catch((err) => {});
+
+        await Storage.setItem({ key: "@storage", value: "" })
+          .then((res) => {
+            navigation.navigate("GetRaspi");
+            socket.disconnect();
+            socket.close();
+          })
+          .catch((err) => {});
       })
       .catch((err) => {});
   };
@@ -154,7 +165,7 @@ function Startup({ navigation, messagingToken }) {
   return (
     <Fragment>
       <Drawer.Navigator initialRouteName="GetRaspi">
-        {/* <Drawer.Navigator initialRouteName='WajahTidakDiketahui'> */}
+        {/* <Drawer.Navigator initialRouteName="WajahTidakDiketahui"> */}
         <Drawer.Screen
           name="GetRaspi"
           options={{
@@ -192,7 +203,7 @@ function Startup({ navigation, messagingToken }) {
         <Drawer.Screen
           name="WajahTidakDiketahui"
           options={{
-            title: "Wajah yang tidak diketahui",
+            title: "Wajah yang tidak dikenal",
           }}
         >
           {(props) => (
@@ -266,9 +277,12 @@ function GetRaspiDevice({ navigation, setUpdateSocket, messagingToken }) {
           await Storage.setItem({
             key: "@storage",
             value: JSON.stringify(res?.data?.data?.[0]),
-          });
-          navigation.navigate("Home");
-          setFormRaspiID("");
+          })
+            .then(() => {
+              navigation.navigate("Home");
+              setFormRaspiID("");
+            })
+            .catch(() => {});
         } else {
           Alert.alert("error", "maaf id rasberry pi kamu tidak ditemukan");
         }
@@ -342,7 +356,7 @@ function GetRaspiDevice({ navigation, setUpdateSocket, messagingToken }) {
   );
 }
 
-function Home({ navigation, cctv, allImageUnknow }) {
+function Home({ navigation, cctv, allImageUnknow, setUpdateSocket }) {
   const [raspiID, setRaspiID] = useState("");
 
   useEffect(() => {
@@ -353,6 +367,13 @@ function Home({ navigation, cctv, allImageUnknow }) {
     let isHaveRaspiID = await Storage.getItem({ key: "@storage" });
     if (isHaveRaspiID) {
       let storage = JSON.parse(isHaveRaspiID);
+      let host = storage?.mobileAppsCon
+        ?.replace("https://", "ws://")
+        ?.replace("\n", "");
+      socket = await io(host, {
+        transports: ["websocket", "polling"],
+      });
+      setUpdateSocket(Math.random());
       setRaspiID(storage.raspi_id);
     }
   };
@@ -388,7 +409,7 @@ function Home({ navigation, cctv, allImageUnknow }) {
           <TouchableOpacity
             onPress={() => navigation.navigate("WajahTidakDiketahui")}
           >
-            <Text>Wajah yang tidak diketahui : {allImageUnknow?.length}</Text>
+            <Text>Wajah yang tidak dikenal : {allImageUnknow?.length}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -397,6 +418,15 @@ function Home({ navigation, cctv, allImageUnknow }) {
 }
 
 function WajahTidakDiketahui({ navigation, allImageUnknow, allFileName }) {
+  const getTimeF = (time = "") => {
+    time = time?.replaceAll(".jpg", "")?.replaceAll(".png", "");
+    time = time?.replaceAll("(s)", "/"); // replace slash
+    time = time?.replaceAll("(S)", " "); // replace space
+    time = time?.replaceAll("(d)", ":"); // replace divide
+
+    return time;
+  };
+
   return (
     <View style={{ marginTop: 5 }}>
       <ScrollView>
@@ -420,20 +450,33 @@ function WajahTidakDiketahui({ navigation, allImageUnknow, allFileName }) {
                 uri: `data:image/png;base64, ${item}`,
               }}
             />
-            <View
-              style={{
-                height: 100,
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "space-around",
-              }}
-            >
-              <Text style={{ fontSize: 13 }}>Tanggal Terekam :</Text>
-              <Text>{getTime(allFileName?.[key])}</Text>
-              <Button
-                title="Saya Mengenalnya"
-                onPress={() => navigation.navigate("saveFace", { imgIdx: key })}
-              />
+            <View>
+              <View
+                style={{
+                  height: 100,
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 13 }}>Tanggal Terekam :</Text>
+                <Text style={{ marginTop: 10 }}>
+                  {getTimeF(allFileName?.[key])}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  socket.emit("deleteFaceUnknowface", allFileName?.[key]);
+                }}
+              >
+                <Text
+                  style={{
+                    color: "red",
+                    textAlign: "right",
+                  }}
+                >
+                  Hapus
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         ))}
@@ -525,9 +568,9 @@ function DataSet({ navigation, allFileNameKnowFace, imgKnowFace }) {
   // console.log(imgKnowFace.length);
   const getTimeF = (time = "") => {
     time = time?.replaceAll(".jpg", "")?.replaceAll(".png", "");
-    let name = time?.split("_").shift();
-    let whitoutName = time.replaceAll(name + "_", "");
-    time = getTime(whitoutName);
+    time = time?.replaceAll("(s)", "/"); // replace slash
+    time = time?.replaceAll("(S)", " "); // replace space
+    time = time?.replaceAll("(d)", ":"); // replace divide
 
     return time;
   };
@@ -569,9 +612,9 @@ function DataSet({ navigation, allFileNameKnowFace, imgKnowFace }) {
               <Text style={{ fontSize: 13, marginBottom: 10 }}>
                 Nama : {allFileNameKnowFace?.[key]?.split("_")?.shift()}
               </Text>
-              <Text style={{ fontSize: 13 }}>
+              {/* <Text style={{ fontSize: 13 }}>
                 Tanggal Terekam : {getTimeF(allFileNameKnowFace?.[key])}
-              </Text>
+              </Text> */}
               <View
                 style={{
                   flexDirection: "row",
@@ -587,7 +630,7 @@ function DataSet({ navigation, allFileNameKnowFace, imgKnowFace }) {
                     });
                   }}
                 >
-                  <Text style={{ color: "red" }}>hapus</Text>
+                  {/* <Text style={{ color: "red" }}>hapus</Text> */}
                 </TouchableOpacity>
               </View>
             </View>

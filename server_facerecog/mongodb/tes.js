@@ -1,3 +1,3 @@
-const m = require('./mongoose')
+const m = require("./mongoose");
 
-m.saveHost("okeh");
+m.saveDataUnknowFace("tes.jpg", new Date());
