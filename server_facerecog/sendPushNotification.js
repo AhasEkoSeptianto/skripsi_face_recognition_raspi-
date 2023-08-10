@@ -22,8 +22,11 @@ const sendPushNotification = async (title, body) => {
           },
           token: fcm_token,
         };
-
-        const res = await admin.messaging().send(message);
+        try {
+          await admin.messaging().send(message);
+        } catch (er) {
+          console.log(er);
+        }
       }
     });
   } catch (err) {

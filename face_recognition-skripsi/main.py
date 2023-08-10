@@ -8,13 +8,6 @@ import base64
 import time
 import datetime
 
-# set config webcam
-URL = "http://<IP>/cam-mid.jpg"
-
-with open('IPESP32CAM.txt') as f:
-    IP = f.read()
-    URL = "http://" + IP + "/cam-mid.jpg"
-    #URL = "http://192.168.96.197/cam-mid.jpg"
 
 # setup dataset
 listDir = os.listdir('./dataSet')
@@ -49,6 +42,14 @@ def SaveUnknowFaces(frame, face_locations):
 
 # 
 while True:
+    # set config webcam
+    URL = "http://<IP>/cam-mid.jpg"
+
+    with open('IPESP32CAM.txt') as f:
+        IP = f.read()
+        URL = "http://" + IP + "/cam-mid.jpg"
+        #URL = "http://192.168.96.197/cam-mid.jpg"
+
     dataSets = []
     unknowFaceSets = []
     isUnkowFaces = isUnkowFace
@@ -89,7 +90,7 @@ while True:
         # small_frame = frame
         small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
         
-        face_locations = face_recognition.face_locations(small_frame, number_of_times_to_upsample=1)
+        face_locations = face_recognition.face_locations(small_frame, number_of_times_to_upsample=3)
         face_encodings = face_recognition.face_encodings(small_frame, face_locations)
         
         faceName = []
