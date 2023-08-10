@@ -9,7 +9,7 @@ exec(
       return;
     }
 
-    console.log(stdout);
-    m.saveHost(stdout.replace(/\r?\n|\r/g));
+    console.log(stdout.trim());
+    m.saveHost(stdout.trim());
   }
 );
